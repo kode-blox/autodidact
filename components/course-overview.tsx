@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import type { CourseState } from "../lib/learner-types";
-import { OverviewLessonLink } from "./reader-tools";
+import { useEffect, useState } from 'react';
+import type { CourseState } from '../lib/learner-types';
+import { OverviewLessonLink } from './reader-tools';
 
 interface Props {
   courseId: string;
@@ -69,7 +69,7 @@ export default function CourseOverview({ courseId, publishedLessonIds }: Props) 
       {resumeIsPublished && (
         <OverviewLessonLink
           className="inline-block rounded-[0.4rem] bg-fd-primary px-4 py-[0.7rem] text-fd-primary-foreground"
-          href={`/courses/${encodeURIComponent(courseId)}/${encodeURIComponent(resume.lessonId)}${resume.heading ? "#" + encodeURIComponent(resume.heading) : ""}`}
+          href={`/courses/${encodeURIComponent(courseId)}/${encodeURIComponent(resume.lessonId)}${resume.heading ? '#' + encodeURIComponent(resume.heading) : ''}`}
         >
           Continue reading →
         </OverviewLessonLink>

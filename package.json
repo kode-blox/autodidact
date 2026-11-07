@@ -22,6 +22,7 @@
     "start": "next start",
     "types:check": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:integration": "tsx --test tests/integration/*.test.ts",
     "lint": "eslint"
   },
   "dependencies": {

@@ -1,0 +1,17 @@
+# Exclude everything unless explicitly required by the build.
+**
+!LICENSE
+!package.json
+!package-lock.json
+!next.config.js
+!proxy.ts
+!postcss.config.js
+!source.config.ts
+!tsconfig.json
+!app
+!components
+!lib
+!server
+!content
+!public
+!tests
