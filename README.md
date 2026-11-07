@@ -1,33 +1,45 @@
-# AutoDidact
+# autodidact
 
-AutoDidact is an open-source, self-hosted course reader for personal learning. Publish courses from Markdown, study them across devices, and keep your place and notes.
+This is a Next.js application generated with
+[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 
-## Courses and studying
+Run development server:
 
-The application and its course content live in one Next.js and Fumadocs repository. Authors edit Markdown and supporting assets outside the application, commit their changes, then rebuild and redeploy to publish them. The reader provides course switching, ordered modules and lessons, search, formatted code, tables, equations, diagrams, collapsible hints, and browser experiments.
+```bash
+npm run dev
+# or
+pnpm dev
+# or
+yarn dev
+```
 
-Lessons remain accessible regardless of completion or prerequisites. Lesson notes open on demand. There are no grades or locked lessons.
+Open http://localhost:3000 with your browser to see the result.
 
-Learning state is separate from course content:
+## Explore
 
-- Completion is an explicit action, shared across devices.
-- Continue reading remembers the last lesson and section heading. If the heading disappears, it opens the lesson.
-- Each lesson has one Markdown notepad.
+In the project, you can see:
 
-Permanent course and lesson IDs preserve learning state across title changes, file moves, and reordering. Course sources remain portable Markdown and accompanying assets. Learner data requires a separate backup of its S3 objects.
+- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
+- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
 
-## Access and deployment
+| Route                     | Description                                            |
+| ------------------------- | ------------------------------------------------------ |
+| `app/(home)`              | The route group for your landing page and other pages. |
+| `app/docs`                | The documentation layout and pages.                    |
+| `app/api/search/route.ts` | The Route Handler for search.                          |
 
-AutoDidact requires an internet connection. A deployment contains one learner's state, shared by the devices admitted through its external authentication gateway or private network. The application does not manage accounts, passwords, teams, organizations, or roles. Authentication must cover the entire application origin.
+### Fumadocs MDX
 
-Next.js serves the reader and backend endpoints, with React for interactive controls and S3-compatible object storage for persistence. Each deployment supports one learner and one active application process; horizontal scaling is outside its scope.
+Collections are defined with the [Macro API](https://fumadocs.dev/docs/mdx/macro) in `lib/source.ts`.
 
-Course updates use the repository's normal build and deployment workflow. The application has no course editor. Interactive experiments run in the browser; native Unreal Engine and Rider labs remain instructions for the learner to perform on their desktop.
+Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
 
-See [architecture](docs/architecture.md) for the content, state, and deployment boundaries.
+## Learn More
 
-## License
+To learn more about Next.js and Fumadocs, take a look at the following
+resources:
 
-Copyright 2026 Sayak Mukhopadhyay.
-
-Licensed under the [Apache License, Version 2.0](LICENSE).
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
+  features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
