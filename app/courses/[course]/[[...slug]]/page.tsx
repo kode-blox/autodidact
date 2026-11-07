@@ -23,7 +23,6 @@ import {
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { getMDXComponents } from '@/components/mdx';
@@ -31,6 +30,8 @@ import { source } from '@/lib/source';
 import { getPageMetadata } from '@/lib/metadata';
 import { getPageGitHubUrl, getPageMarkdownUrl, lessonUrl } from '@/lib/shared';
 import { getCatalog, getCourse } from '@/lib/content/catalog';
+import CourseOverview from '@/components/course-overview';
+import ReaderTools, { OverviewLessonLink } from '@/components/reader-tools';
 
 export function generateStaticParams() {
   return getCatalog().flatMap((course) => [
@@ -80,7 +81,25 @@ export default async function Page(props: PageProps<'/courses/[course]/[[...slug
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={getPageGitHubUrl(page)} />
       </div>
-      <DocsBody>
+      {lessonId ? (
+        <ReaderTools
+          key={course.id + '/' + lessonId}
+          courseId={course.id}
+          lessonId={lessonId}
+          lessonIds={course.lessons.map((lesson) => lesson.id)}
+          headingIds={page.data.structuredData.headings.map((heading) => heading.id)}
+          experiments={course.experiments.map((experiment) => ({
+            id: experiment.id,
+            title: experiment.title,
+          }))}
+        />
+      ) : (
+        <CourseOverview courseId={course.id} publishedLessonIds={course.lessons.map((lesson) => lesson.id)} />
+      )}
+      <DocsBody
+        data-lesson-prose={lessonId ? true : undefined}
+        className={lessonId ? 'text-[1.08rem] leading-[1.8] wrap-anywhere [&_:is(h2,h3,h4)]:scroll-mt-24' : undefined}
+      >
         <Body
           components={getMDXComponents({
             a: createRelativeLink(source, page),
@@ -89,14 +108,14 @@ export default async function Page(props: PageProps<'/courses/[course]/[[...slug
         {!lessonId && (
           <>
             <p>Lessons are always available. Study in order or choose the topic you need.</p>
-            {course.baseline && <p>Baseline: {course.baseline}</p>}
+            {course.baseline && <p className="text-[0.85rem] text-fd-muted-foreground">Baseline: {course.baseline}</p>}
             {course.modules.map((module) => (
               <section key={module.id}>
                 <h2>{module.title}</h2>
                 <ol>
                   {module.lessons.map((lesson) => (
                     <li key={lesson.id}>
-                      <Link href={lessonUrl(course.id, lesson.id)}>{lesson.title}</Link>
+                      <OverviewLessonLink href={lessonUrl(course.id, lesson.id)}>{lesson.title}</OverviewLessonLink>
                       <p>{lesson.description}</p>
                     </li>
                   ))}

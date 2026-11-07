@@ -113,16 +113,81 @@ test('experiment declarations match flat bundled files and reject nested paths a
   await assert.doesNotReject(() => validateDocuments(docs, ['/content/one/experiments/example.html']));
 });
 test('Markdown preserves safe details, math, GFM and Mermaid while dropping active HTML', async () => {
+  const chart = 'flowchart TD\n  A["Input & output"] --> B["Done"]';
   const compiled = await compileMarkdown(
-    '<details open><summary>Hint</summary>Answer</details>\n\n<script>alert(1)</script>\n\n<img src="x" onerror="alert(1)">\n\n[bad](javascript:alert)\n\n$x^2$\n\n| A | B |\n| - | - |\n| a | b |\n\n```mermaid\nflowchart TD\nA-->B\n```',
+    '<details open><summary>Hint</summary>Answer</details>\n\n<script>alert(1)</script>\n\n<img src="x" onerror="alert(1)">\n\n[bad](javascript:alert)\n\n$x^2$\n\n| A | B |\n| - | - |\n| a | b |\n\n```ts\nconst answer = 42;\n```\n\n```mermaid\n' +
+      chart +
+      '\n```',
   );
-  const code = renderToStaticMarkup(createElement(compiled.body));
+  const diagrams: string[] = [];
+  const code = renderToStaticMarkup(
+    createElement(compiled.body, {
+      components: {
+        Mermaid: ({ chart }: { chart: string }) => {
+          diagrams.push(chart);
+          return createElement('figure', { 'data-mermaid': true }, chart);
+        },
+      },
+    }),
+  );
   assert.match(code, /<details open/);
   assert.match(code, /<summary>Hint/);
   assert.match(code, /katex/);
   assert.match(code, /<table>/);
-  assert.match(code, /language-mermaid/);
+  assert.match(code, /language-ts/);
+  assert.match(code, /<figure data-mermaid="true">/);
+  assert.deepEqual(diagrams, [chart]);
   assert.doesNotMatch(code, /<script|onerror|javascript:/);
+});
+
+test('native Mermaid components retain their source and order inside nested Markdown and details', async () => {
+  const compiled = await compileMarkdown(
+    'Before.\n\n> Quote before.\n>\n> ```mermaid\n> flowchart TD\n> Q --> R\n> ```\n>\n> Quote after.\n\n- List before.\n\n  ```mermaid\n  flowchart TD\n  L --> M\n  ```\n\n  List after.\n\n<details open>\n<summary>Hint</summary>\n\n```mermaid\nflowchart TD\nD --> E\n```\n\n</details>\n\nAfter.',
+  );
+  const diagrams: string[] = [];
+  const html = renderToStaticMarkup(
+    createElement(compiled.body, {
+      components: {
+        Mermaid: ({ chart }: { chart: string }) => {
+          const index = diagrams.push(chart) - 1;
+          return createElement('div', { 'data-diagram': index }, chart);
+        },
+      },
+    }),
+  );
+  assert.deepEqual(diagrams, ['flowchart TD\nQ --> R', 'flowchart TD\nL --> M', 'flowchart TD\nD --> E']);
+  assert.match(
+    html,
+    /<blockquote>[\s\S]*Quote before\.[\s\S]*data-diagram="0"[\s\S]*Quote after\.[\s\S]*<\/blockquote>/,
+  );
+  assert.match(html, /<li>[\s\S]*List before\.[\s\S]*data-diagram="1"[\s\S]*List after\.[\s\S]*<\/li>/);
+  assert.match(html, /<details open[\s\S]*<summary>Hint<\/summary>[\s\S]*data-diagram="2"[\s\S]*<\/details>/);
+  assert.ok(html.indexOf('Before.') < html.indexOf('data-diagram="0"'));
+  assert.ok(html.indexOf('data-diagram="2"') < html.indexOf('After.'));
+});
+
+test('authored HTML and comments cannot impersonate generated Mermaid components', async () => {
+  const compiled = await compileMarkdown(
+    '<!--compiler:0-->\n<!--compiler:1-->\n<!--compiler:2-->\n\n<Mermaid chart="forged" />\n\n<Other chart="forged"></Other>\n\n<script>\n\n```mermaid\nflowchart TD\nHidden --> Script\n```\n\n</script>\n\n<img src="x" onerror="alert(1)">\n\n```mermaid\nflowchart TD\nReal --> Diagram\n```',
+  );
+  const diagrams: string[] = [];
+  const unexpected = () => {
+    assert.fail('Authored HTML must not invoke an MDX component');
+  };
+  const html = renderToStaticMarkup(
+    createElement(compiled.body, {
+      components: {
+        Other: unexpected,
+        Mermaid: ({ chart }: { chart: string }) => {
+          diagrams.push(chart);
+          return createElement('figure', null, chart);
+        },
+      },
+    }),
+  );
+  assert.deepEqual(diagrams, ['flowchart TD\nReal --> Diagram']);
+  assert.match(html, /<figure>/);
+  assert.doesNotMatch(html, /<!--|<script|onerror|forged|Hidden|compiler:/);
 });
 test('compiled heading IDs match rendered anchors and search results', async () => {
   const { body, structuredData } = await compileMarkdown(

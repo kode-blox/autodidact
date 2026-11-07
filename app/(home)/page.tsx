@@ -17,19 +17,28 @@
 import Link from 'next/link';
 import { getCatalog } from '@/lib/content/catalog';
 
-export default function Page() {
+export default function HomePage() {
   const courses = getCatalog();
   return (
-    <div>
-      <h1>AutoDidact</h1>
-      {courses.map((course) => (
-        <section key={course.id}>
-          <h2>
-            <Link href={`/courses/${encodeURIComponent(course.id)}`}>{course.title}</Link>
-          </h2>
-          <p>{course.description}</p>
-        </section>
-      ))}
+    <div className="m-auto w-full max-w-[900px] px-6 py-16">
+      <p className="text-[0.8rem] tracking-[0.12em] text-fd-muted-foreground uppercase">Your learning library</p>
+      <h1 className="mt-4 mb-8 text-[clamp(2.5rem,5vw,4rem)] leading-[1.15]">Make room for understanding.</h1>
+      <p className="text-[1.2rem] leading-[1.7] text-fd-muted-foreground">
+        Choose a course. Read at your own pace, keep notes, and return to where you left off.
+      </p>
+      <div>
+        {courses.map((course) => (
+          <Link
+            className="mt-8 block border-y border-fd-border py-8"
+            key={course.id}
+            href={'/courses/' + encodeURIComponent(course.id)}
+          >
+            <h2 className="mb-3 text-[1.5rem]">{course.title}</h2>
+            <p className="my-3 text-fd-muted-foreground">{course.description}</p>
+            <span>{course.lessons.length} lessons · Open course →</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

@@ -19,9 +19,10 @@ import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { fromHtml } from 'hast-util-from-html';
-import { visit } from 'unist-util-visit';
+import { SKIP, visit } from 'unist-util-visit';
+import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins';
 import type { Root as MarkdownRoot } from 'mdast';
-import type { Root as HtmlRoot } from 'hast';
+import type { Root as HtmlRoot, RootContent } from 'hast';
 import type { MDXPresetOptions } from 'fumadocs-mdx/config';
 import path from 'node:path';
 
@@ -88,10 +89,11 @@ function authoredLinks() {
   };
 }
 
-/** Compiler exports are trusted; authored Markdown cannot introduce ESM nodes. */
+/** Preserve compiler exports and generated diagrams without trusting authored HTML. */
 function sanitizeAuthoredHtml() {
   const sanitize = rehypeSanitize({
     ...defaultSchema,
+    allowComments: true,
     clobberPrefix: '',
     tagNames: [...defaultSchema.tagNames!, 'details', 'summary'],
     attributes: {
@@ -102,28 +104,55 @@ function sanitizeAuthoredHtml() {
   });
 
   return (tree: HtmlRoot) => {
-    // Fumadocs exports its heading/structured data as non-HAST compiler nodes.
-    // Keep those outside the authored HTML policy rather than stripping them.
-    const compilerNodes = tree.children.filter((node) => {
-      return (node as { type: string }).type === 'mdxjsEsm';
+    // Only our temporary comments may pass through the sanitizer. Remove authored
+    // comments first so their contents cannot impersonate a compiler placeholder.
+    visit(tree, 'comment', (_node, index, parent) => {
+      if (parent && index !== undefined) {
+        parent.children.splice(index, 1);
+        return index;
+      }
     });
 
-    const authored = {
-      ...tree,
-      children: tree.children.filter((node) => {
-        return (node as { type: string }).type !== 'mdxjsEsm';
-      }),
-    };
+    const compilerNodes = new Map<string, RootContent>();
+    visit(tree, (node, index, parent) => {
+      if (!parent || index === undefined) return;
 
-    const safe = sanitize(authored) as HtmlRoot;
-    tree.children = [...compilerNodes, ...safe.children];
+      // Markdown cannot author MDX nodes. Accept only the exact component shape
+      // produced by remarkMdxMermaid, alongside Fumadocs' compiler exports.
+      const mermaid =
+        node.type === 'mdxJsxFlowElement' &&
+        node.name === 'Mermaid' &&
+        node.children.length === 0 &&
+        node.attributes.length === 1 &&
+        node.attributes[0].type === 'mdxJsxAttribute' &&
+        node.attributes[0].name === 'chart' &&
+        typeof node.attributes[0].value === 'string';
+      if (node.type !== 'mdxjsEsm' && !mermaid) return;
+
+      const key = `compiler:${compilerNodes.size}`;
+      compilerNodes.set(key, node as RootContent);
+      parent.children[index] = { type: 'comment', value: key };
+      return SKIP;
+    });
+
+    const safe = sanitize(tree) as HtmlRoot;
+    // Restore only placeholders that survived. Diagrams inside stripped HTML
+    // must disappear with their parent, while nested Markdown keeps its order.
+    visit(safe, 'comment', (node, index, parent) => {
+      const compilerNode = compilerNodes.get(node.value);
+      if (compilerNode && parent && index !== undefined) {
+        parent.children[index] = compilerNode;
+        return SKIP;
+      }
+    });
+    tree.children = safe.children;
   };
 }
 
 /** Extend the Fumadocs preset; its GFM, heading, TOC and code plugins stay enabled. */
 export const markdownOptions: MDXPresetOptions = {
   remarkImageOptions: { useImport: false, external: false, onError: 'ignore' },
-  remarkPlugins: [remarkMath, authoredLinks],
+  remarkPlugins: [remarkMath, authoredLinks, remarkMdxMermaid],
 
   rehypeCodeOptions: {
     themes: { light: 'github-light', dark: 'github-dark' },
@@ -132,7 +161,7 @@ export const markdownOptions: MDXPresetOptions = {
 
   // Process and sanitize authored HTML before trusted KaTeX/Shiki markup.
   rehypePlugins: (defaults) => [
-    [rehypeRaw, { passThrough: ['mdxjsEsm'] }],
+    [rehypeRaw, { passThrough: ['mdxjsEsm', 'mdxJsxFlowElement'] }],
     sanitizeAuthoredHtml,
     rehypeKatex,
     ...defaults,

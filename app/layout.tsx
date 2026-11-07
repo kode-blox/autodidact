@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { Metadata } from 'next';
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import './global.css';
 import { Inter } from 'next/font/google';
@@ -22,6 +23,17 @@ import 'katex/dist/katex.min.css';
 const inter = Inter({
   subsets: ['latin'],
 });
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.svg',
+  },
+  title: {
+    default: 'AutoDidact',
+    template: '%s | AutoDidact',
+  },
+  description: 'An open-source, self-hosted course reader for personal learning.',
+};
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (

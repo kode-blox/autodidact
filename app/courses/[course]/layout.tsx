@@ -21,6 +21,7 @@ import { notFound } from 'next/navigation';
 import { getCatalog, getCourse } from '@/lib/content/catalog';
 import { baseOptions } from '@/lib/layout.shared';
 import { getPublicationTree } from '@/lib/content/publication';
+import { ReaderNavigationProvider } from '@/components/reader-tools';
 
 export default async function Layout({ children, params }: LayoutProps<'/courses/[course]'>) {
   const { course: id } = await params;
@@ -31,12 +32,14 @@ export default async function Layout({ children, params }: LayoutProps<'/courses
   }
 
   return (
-    <SearchProvider<DefaultSearchDialogProps>
-      options={{ api: '/api/courses/' + encodeURIComponent(course.id) + '/search', delayMs: 250 }}
-    >
-      <DocsLayout tree={getPublicationTree(getCatalog())} {...baseOptions()}>
-        {children}
-      </DocsLayout>
-    </SearchProvider>
+    <ReaderNavigationProvider>
+      <SearchProvider<DefaultSearchDialogProps>
+        options={{ api: '/api/courses/' + encodeURIComponent(course.id) + '/search', delayMs: 250 }}
+      >
+        <DocsLayout tree={getPublicationTree(getCatalog())} {...baseOptions()}>
+          {children}
+        </DocsLayout>
+      </SearchProvider>
+    </ReaderNavigationProvider>
   );
 }
