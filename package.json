@@ -1,7 +1,21 @@
 {
   "name": "autodidact",
-  "version": "0.0.59",
+  "version": "0.0.1",
+  "description": "An open-source, self-hosted course reader for personal learning.",
+  "license": "Apache-2.0",
   "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kode-blox/autodidact.git"
+  },
+  "homepage": "https://autodidact.kodeblox.com",
+  "bugs": {
+    "url": "https://github.com/kode-blox/autodidact/issues"
+  },
+  "engines": {
+    "node": ">=26.13.0"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -25,11 +39,16 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "postcss": "^8.5.32",
-    "tailwindcss": "^4.3.5",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "@typescript/native": "npm:typescript@^7.0.2",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.4.5"
+    "eslint-config-next": "16.4.5",
+    "eslint-config-prettier": "^10.1.8",
+    "postcss": "^8.5.32",
+    "prettier": "3.9.10",
+    "tailwindcss": "^4.3.5",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
