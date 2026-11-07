@@ -14,28 +14,31 @@
  * limitations under the License.
  */
 
+import { docsLlms } from '@/lib/content/publication';
 import { source } from '@/lib/source';
+import { getCatalog } from '@/lib/content/catalog';
+import { getPageMarkdownUrl } from '@/lib/shared';
 import { notFound } from 'next/navigation';
-import { generateOGImage } from 'fumadocs-ui/og';
-import { appName, getPageImageUrl } from '@/lib/shared';
 
 export const revalidate = false;
 
-export async function GET(_req: Request, { params }: RouteContext<'/og/docs/[...slug]'>) {
-  const { slug } = await params;
-  const page = source.getPage(slug.slice(0, -1));
-  if (!page) notFound();
+export async function GET(_request: Request, { params }: RouteContext<'/llms.mdx/courses/[[...slug]]'>) {
+  getCatalog();
 
-  return generateOGImage({
-    title: page.data.title,
-    description: page.data.description,
-    site: appName,
+  const { slug } = await params;
+  const page = source.getPage(slug?.slice(0, -1));
+  if (!page || slug?.at(-1) !== 'content.md') notFound();
+
+  return new Response(await docsLlms.page(page), {
+    headers: {
+      'Content-Type': 'text/markdown',
+    },
   });
 }
 
 export function generateStaticParams() {
   return source.getPages().map((page) => ({
     lang: page.locale,
-    slug: getPageImageUrl(page).segments,
+    slug: getPageMarkdownUrl(page).segments,
   }));
 }

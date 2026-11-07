@@ -16,15 +16,19 @@
 
 import { createGetUrl } from 'fumadocs-core/source';
 
-export const appName = 'My App';
-export const docsRoute = '/docs';
-export const docsImageRoute = '/og/docs';
-export const docsContentRoute = '/llms.mdx/docs';
+export const appName = 'AutoDidact';
+export const docsRoute = '/courses';
+export const docsImageRoute = '/og/courses';
+export const docsContentRoute = '/llms.mdx/courses';
+
+export function lessonUrl(courseId: string, lessonId: string) {
+  return `${docsRoute}/${encodeURIComponent(courseId)}/${encodeURIComponent(lessonId)}`;
+}
 
 // fill this with your actual GitHub info, for example:
 export const gitConfig = {
-  user: 'fuma-nama',
-  repo: 'fumadocs',
+  user: 'kode-blox',
+  repo: 'autodidact',
   branch: 'main',
 };
 
@@ -42,4 +46,10 @@ export function getPageImageUrl(page: { slugs: string[]; locale?: string }) {
   const segments = [...page.slugs, 'image.png'];
 
   return { segments, url: getImageUrl(segments, page.locale) };
+}
+
+/** The edit link follows the authored file, while public URLs use stable IDs. */
+export function getPageGitHubUrl(page: { path: string }) {
+  const authoredPath = ['content', 'courses', ...page.path.split('/')].map(encodeURIComponent).join('/');
+  return `https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/${authoredPath}`;
 }

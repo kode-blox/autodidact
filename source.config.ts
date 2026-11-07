@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-import { source } from '@/lib/source';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { baseOptions } from '@/lib/layout.shared';
+import { defineConfig } from 'fumadocs-mdx/config';
+import { markdownOptions } from './lib/content/markdown';
 
-export default function Layout({ children }: LayoutProps<'/docs'>) {
-  return (
-    <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
-      {children}
-    </DocsLayout>
-  );
-}
+export default defineConfig({ mdxOptions: markdownOptions });

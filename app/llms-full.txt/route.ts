@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { docsLlms } from '@/lib/source';
+import { docsLlms } from '@/lib/content/publication';
 
 export const revalidate = false;
 

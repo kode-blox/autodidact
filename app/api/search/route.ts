@@ -16,5 +16,9 @@
 
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
+import { getCatalog } from '@/lib/content/catalog';
 
-export const { GET } = createFromSource(source);
+export const { GET } = createFromSource(() => {
+  getCatalog();
+  return source;
+});

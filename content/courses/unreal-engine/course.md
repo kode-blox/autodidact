@@ -13,19 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-title: Components
-description: Components
+id: ue584
+title: Unreal Engine Development
+description: Understand the engine through source, worked examples, and practical experiments.
+baseline: "5.8.4"
+modules: ["05"]
+experiments:
+  - id: compute-dispatch
+    title: Compute dispatch
+    file: experiments/compute-dispatch.html
 ---
 
-## Code Block
-
-```js
-console.log("Hello World");
-```
-
-## Cards
-
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+Study Unreal Engine internals against stock UE 5.8.4. The course contains two lessons from GPU Programming.

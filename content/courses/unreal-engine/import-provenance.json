@@ -1,0 +1,15 @@
+{
+  "baselineCommit": "f45729c0b6f097038e72b52d366a62baeca3275b",
+  "sourceHashes": {
+    "Modules/05 GPU Programming/05-01 Shader stages resources and bindings.md": "c971bc99eef2c2af831f7205568f4812de1568706a3a9b084be1a96f1aab16a5",
+    "Modules/05 GPU Programming/05-02 Compute dispatch and thread groups.md": "6a15b6a8ffafb0cc2694a74531eabd9e9a001b4a1b25f8516446a18d09368a6d",
+    "Experiments/compute-dispatch.html": "815a5230227885f1cef89ab9845225ee01fa90829a18c04ba57ba11b2d27e119"
+  },
+  "changes": [
+    "Replaced source navigation with application navigation.",
+    "Converted imported lesson links; unpublished destinations are labelled unavailable.",
+    "Converted foldable examples to native details markup.",
+    "Adapted experiment index link to dialog return instructions."
+  ],
+  "learnerStateImported": false
+}

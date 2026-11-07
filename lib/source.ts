@@ -14,34 +14,43 @@
  * limitations under the License.
  */
 
-import { llms, loader } from 'fumadocs-core/source';
+import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
-import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
-import { defineDocs } from 'fumadocs-mdx/macro';
-import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
+import { docsRoute } from './shared';
+import { defineCollections } from 'fumadocs-mdx/macro';
+import { courseCollectionSchema, moduleCollectionSchema, lessonCollectionSchema } from './content/schemas';
 
-const docs = defineDocs({
-  dir: 'content/docs',
-  docs: {
-    schema: pageSchema,
-    postprocess: {
-      includeProcessedMarkdown: true,
-    },
-  },
-  meta: {
-    schema: metaSchema,
-  },
+export const courseDocuments = defineCollections({
+  type: 'doc',
+  dir: 'content/courses',
+  files: ['**/course.md'],
+  schema: courseCollectionSchema,
+  postprocess: { includeProcessedMarkdown: true, valueToExport: ['authoredLinks'] },
 });
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
+export const moduleDocuments = defineCollections({
+  type: 'doc',
+  dir: 'content/courses',
+  files: ['**/module.md'],
+  schema: moduleCollectionSchema,
+  postprocess: { valueToExport: ['authoredLinks'] },
+});
+
+export const lessonDocuments = defineCollections({
+  type: 'doc',
+  dir: 'content/courses',
+  files: ['**/lessons/*.md'],
+  schema: lessonCollectionSchema,
+  postprocess: { includeProcessedMarkdown: true, valueToExport: ['authoredLinks'] },
+});
+
+/** Published URLs use permanent authored IDs, never source paths or titles. */
 export const source = loader({
   baseUrl: docsRoute,
-  source: docs.toFumadocsSource(),
+  source: {
+    courses: courseDocuments.toFumadocsSource(),
+    lessons: lessonDocuments.toFumadocsSource(),
+  },
   plugins: [lucideIconsPlugin()],
-});
-
-export const docsLlms = llms(source, {
-  renderPage: async (page) => `# ${page.data.title} (${page.url})
-
-${await page.data.getText('processed')}`,
+  slugs: (file) => (file.type === 'courses' ? [file.data.id] : [file.data.course, file.data.id]),
 });

@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-title: Hello World
-description: Your first document
+id: "05"
+course: ue584
+title: GPU Programming
+lessons: ["05-01", "05-02"]
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
-
-## What is Next?
-
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+Connect shader stages and resource bindings to an explicit compute dispatch.

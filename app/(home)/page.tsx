@@ -15,18 +15,21 @@
  */
 
 import Link from 'next/link';
+import { getCatalog } from '@/lib/content/catalog';
 
-export default function HomePage() {
+export default function Page() {
+  const courses = getCatalog();
   return (
-    <div className="flex flex-col justify-center text-center flex-1">
-      <h1 className="text-2xl font-bold mb-4">Hello World</h1>
-      <p>
-        You can open{' '}
-        <Link href="/docs" className="font-medium underline">
-          /docs
-        </Link>{' '}
-        and see the documentation.
-      </p>
+    <div>
+      <h1>AutoDidact</h1>
+      {courses.map((course) => (
+        <section key={course.id}>
+          <h2>
+            <Link href={`/courses/${encodeURIComponent(course.id)}`}>{course.title}</Link>
+          </h2>
+          <p>{course.description}</p>
+        </section>
+      ))}
     </div>
   );
 }
