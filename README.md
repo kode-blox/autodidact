@@ -24,9 +24,11 @@ Next.js serves the Fumadocs reader and backend endpoints, with React for interac
 
 Course updates use the repository's normal build and deployment workflow. The application has no course editor. Interactive experiments run in the browser; native Unreal Engine and Rider labs remain instructions for the learner to perform on their desktop.
 
-## Included course
+## Included courses
 
 The Unreal Engine Development course contains lessons 05-01 and 05-02 about GPU shader stages, resource bindings, and compute dispatch against stock UE 5.8.4, together with the compute-dispatch experiment. The published content is independent of the source vault.
+
+Rust for Experienced Developers starts with two lessons about ownership at function boundaries and shared state with `Arc` and `Mutex`. It assumes programming experience and uses small, runnable examples to explain Rust's ownership model.
 
 ## Run locally
 
