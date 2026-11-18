@@ -36,3 +36,5 @@ External authentication protects the entire application origin, including pages,
 Experiments have dedicated responses with a CSP sandbox and are embedded in sandboxed frames without same-origin permission. The response-level sandbox also applies when an experiment URL is opened directly. Experiment scripts cannot access learner data or application storage.
 
 The runtime image contains the Next.js standalone server, its traced runtime dependencies, and static assets. Learner state survives container replacement in the external bucket; there are no persistent container volumes or migration jobs. Startup does not create storage resources. The readiness endpoint checks read access through a non-mutating request under the configured prefix; it does not verify write permission. Kubernetes deployments use one replica and the `Recreate` strategy so old and new application processes do not overlap. [Self-hosting](./self-hosting.md) covers storage configuration, authentication, backups, and contributor checks.
+
+See [Security](./security.md) for the deployment's trust boundaries and controls.

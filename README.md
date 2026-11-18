@@ -54,7 +54,9 @@ OCI labels identify the author, title, description, base image, `kode-blox` vend
 
 ## Documentation
 
-The Fumadocs site in `docs/` covers [self-hosting](docs/content/docs/self-hosting.md), [course authoring](docs/content/docs/authoring.md), and [architecture](docs/content/docs/architecture.md). See the [docs workspace](docs/README.md) to preview and build the static site.
+The Fumadocs site in `docs/` covers [self-hosting](docs/content/docs/self-hosting.md), [course authoring](docs/content/docs/authoring.md), [architecture](docs/content/docs/architecture.md), and [security](docs/content/docs/security.md). See the [docs workspace](docs/README.md) to preview and build the static site.
+
+The [security policy](SECURITY.md) covers supported versions and private vulnerability reporting.
 
 ## License
 

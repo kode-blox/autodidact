@@ -19,6 +19,13 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
+  ci:
+    name: CI
+    permissions:
+      contents: read
+      security-events: write
+    uses: $/.github/workflows/ci.yaml
+
   detect-delivery-changes:
     name: Detect Delivery Changes
     permissions:
