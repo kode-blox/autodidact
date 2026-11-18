@@ -17,9 +17,9 @@
 import { randomUUID } from 'node:crypto';
 import { llms } from 'fumadocs-core/source';
 import type { Item, Node, Root } from 'fumadocs-core/page-tree';
-import { appName, lessonUrl } from '../shared';
-import { source } from '../source';
-import { getCatalog, type CourseCatalog } from './catalog';
+import { appName, lessonUrl } from '@/lib/shared';
+import { source } from '@/lib/source';
+import { getCatalog, type CourseCatalog } from '@/lib/content/catalog';
 
 const publicationTrees = new WeakMap<CourseCatalog[], Root>();
 

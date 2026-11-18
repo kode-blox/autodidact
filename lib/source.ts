@@ -16,9 +16,9 @@
 
 import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
-import { docsRoute } from './shared';
+import { docsRoute } from '@/lib/shared';
 import { defineCollections } from 'fumadocs-mdx/macro';
-import { courseCollectionSchema, moduleCollectionSchema, lessonCollectionSchema } from './content/schemas';
+import { courseCollectionSchema, moduleCollectionSchema, lessonCollectionSchema } from '@/lib/content/schemas';
 
 export const courseDocuments = defineCollections({
   type: 'doc',

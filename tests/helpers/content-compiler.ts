@@ -21,9 +21,9 @@ import * as runtime from 'react/jsx-runtime';
 import type { MDXContent } from 'mdx/types';
 import type { StructuredData } from 'fumadocs-core/mdx-plugins/remark-structure';
 import type { TOCItemType } from 'fumadocs-core/toc';
-import { markdownOptions } from '../../lib/content/markdown';
-import { courseSchema, moduleSchema, lessonSchema } from '../../lib/content/schemas';
-import { validateCompiledDocuments, type CompiledDocument } from '../../lib/content/validation';
+import { markdownOptions } from '@/lib/content/markdown';
+import { courseSchema, moduleSchema, lessonSchema } from '@/lib/content/schemas';
+import { validateCompiledDocuments, type CompiledDocument } from '@/lib/content/validation';
 
 export interface AuthoredDocument {
   path: string;

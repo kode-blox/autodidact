@@ -17,8 +17,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { CourseState } from '../lib/learner-types';
-import { OverviewLessonLink } from './reader-tools';
+import type { CourseState } from '@/lib/learner-types';
+import { OverviewLessonLink } from '@/components/reader-tools';
 
 interface Props {
   courseId: string;

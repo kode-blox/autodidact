@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkMutation, readJson } from '../server/http';
-import { completion, note, resume, version } from '../server/state/validation';
+import { checkMutation, readJson } from '@/server/http';
+import { completion, note, resume, version } from '@/server/state/validation';
 
 test('state validation rejects coercion and oversized notes', () => {
   for (const value of ['true', 1, null]) assert.throws(() => completion({ completed: value }));

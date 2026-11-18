@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateDocuments, compileMarkdown } from './helpers/content-compiler';
+import { validateDocuments, compileMarkdown } from '@/tests/helpers/content-compiler';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { loader } from 'fumadocs-core/source';
 import type { StructuredData } from 'fumadocs-core/mdx-plugins/remark-structure';

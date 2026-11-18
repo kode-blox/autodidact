@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { StateConflict } from './state/store';
+import { StateConflict } from '@/server/state/store';
 
 export class HttpError extends Error {
   constructor(

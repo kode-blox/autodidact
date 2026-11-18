@@ -15,6 +15,6 @@
  */
 
 import { defineConfig } from 'fumadocs-mdx/config';
-import { markdownOptions } from './lib/content/markdown';
+import { markdownOptions } from '@/lib/content/markdown';
 
 export default defineConfig({ mdxOptions: markdownOptions });

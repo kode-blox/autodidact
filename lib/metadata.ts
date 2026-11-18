@@ -16,7 +16,7 @@
 
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { getPageImageUrl } from './shared';
+import { getPageImageUrl } from '@/lib/shared';
 
 export function metadataOrigin(requestHeaders: Pick<Headers, 'get'>, configuredOrigin = process.env.APP_ORIGIN): URL {
   if (configuredOrigin) {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { MAX_NOTE_LENGTH, type CompletionValue, type NoteValue, type ResumeValue } from '../../lib/learner-types';
-import { HttpError } from '../http';
+import { MAX_NOTE_LENGTH, type CompletionValue, type NoteValue, type ResumeValue } from '@/lib/learner-types';
+import { HttpError } from '@/server/http';
 
 export function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

@@ -21,7 +21,7 @@ import {
   type Resource,
   type ResumeValue,
 } from '@/lib/learner-types';
-import { documentKey, getDocumentStore, type DocumentStore } from '../storage/store';
+import { documentKey, getDocumentStore, type DocumentStore } from '@/server/storage/store';
 
 export type ResourceKind = 'completion' | 'note' | 'resume';
 

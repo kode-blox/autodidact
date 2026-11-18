@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { S3Client } from '@aws-sdk/client-s3';
-import { StateConflict, StateStore } from '../server/state/store';
-import { documentKey, S3DocumentStore, type DocumentStore } from '../server/storage/store';
-import type { Resource, NoteValue } from '../lib/learner-types';
-import { startS3Server } from './helpers/s3-server';
+import { StateConflict, StateStore } from '@/server/state/store';
+import { documentKey, S3DocumentStore, type DocumentStore } from '@/server/storage/store';
+import type { Resource, NoteValue } from '@/lib/learner-types';
+import { startS3Server } from '@/tests/helpers/s3-server';
 
 function winner(results: PromiseSettledResult<Resource<NoteValue>>[]) {
   const successes = results.filter((result) => result.status === 'fulfilled');

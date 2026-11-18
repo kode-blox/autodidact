@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { courseDocuments, moduleDocuments, lessonDocuments } from '../source';
-import { validateCompiledDocuments, type CompiledDocument } from './validation';
+import { courseDocuments, moduleDocuments, lessonDocuments } from '@/lib/source';
+import { validateCompiledDocuments, type CompiledDocument } from '@/lib/content/validation';
 
 export interface Experiment {
   id: string;

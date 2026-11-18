@@ -4,8 +4,8 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { startS3Server } from '../helpers/s3-server';
-import type { CourseState, LessonState, Resource, NoteValue, ResumeValue } from '../../lib/learner-types';
+import { startS3Server } from '@/tests/helpers/s3-server';
+import type { CourseState, LessonState, Resource, NoteValue, ResumeValue } from '@/lib/learner-types';
 
 const nextCli = fileURLToPath(import.meta.resolve('next/dist/bin/next'));
 

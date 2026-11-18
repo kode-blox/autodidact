@@ -22,10 +22,10 @@ import { NextRequest } from 'next/server';
 import { loader, type Source } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import proxy from '../proxy';
-import { getPageGitHubUrl, getPageImageUrl, getPageMarkdownUrl } from '../lib/shared';
-import { lessonSchema } from '../lib/content/schemas';
-import { metadataOrigin } from '../lib/metadata';
+import proxy from '@/proxy';
+import { getPageGitHubUrl, getPageImageUrl, getPageMarkdownUrl } from '@/lib/shared';
+import { lessonSchema } from '@/lib/content/schemas';
+import { metadataOrigin } from '@/lib/metadata';
 
 test('Markdown negotiation keeps HTML and Markdown cache representations distinct', () => {
   const url = 'http://localhost/courses/one/intro';

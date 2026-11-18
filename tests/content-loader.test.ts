@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { compileMarkdown, validateDocuments } from './helpers/content-compiler';
-import { courseCollectionSchema, publicAssetUrls } from '../lib/content/schemas';
-import { validateCompiledDocuments } from '../lib/content/validation';
+import { compileMarkdown, validateDocuments } from '@/tests/helpers/content-compiler';
+import { courseCollectionSchema, publicAssetUrls } from '@/lib/content/schemas';
+import { validateCompiledDocuments } from '@/lib/content/validation';
 
 function fixture(directory = '/content/one') {
   return [

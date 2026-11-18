@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { documentKey, S3DocumentStore, storageConfig, type StorageConfig } from '../server/storage/store';
-import { startS3Server } from './helpers/s3-server';
+import { documentKey, S3DocumentStore, storageConfig, type StorageConfig } from '@/server/storage/store';
+import { startS3Server } from '@/tests/helpers/s3-server';
 
 const config: StorageConfig = {
   bucket: 'test',

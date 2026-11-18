@@ -16,7 +16,7 @@
 
 import path from 'node:path';
 import type { StructuredData } from 'fumadocs-core/mdx-plugins/remark-structure';
-import { lessonUrl } from '../shared';
+import { lessonUrl } from '@/lib/shared';
 
 export interface DocumentData {
   id: string;

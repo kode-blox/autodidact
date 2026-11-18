@@ -29,7 +29,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useTheme } from 'fumadocs-ui/provider/base';
-import { createDiagramViewport, DiagramViewportControls, type DiagramBounds } from '../diagram-viewport';
+import { createDiagramViewport, DiagramViewportControls, type DiagramBounds } from '@/components/diagram-viewport';
 
 const subscribe = () => () => {};
 
