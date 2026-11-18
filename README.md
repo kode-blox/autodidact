@@ -42,7 +42,7 @@ docker run --detach --name autodidact --env-file .env --publish 127.0.0.1:8080:8
 docker logs autodidact
 ```
 
-The default local address is <http://127.0.0.1:8080>. Supply external authentication covering the entire origin before making it reachable from other devices. See [self-hosting](docs/self-hosting.md) for updates and backups.
+The default local address is <http://127.0.0.1:8080>. Supply external authentication covering the entire origin before making it reachable from other devices. See [self-hosting](docs/content/docs/self-hosting.md) for updates and backups.
 
 ## Docker image
 
@@ -52,7 +52,9 @@ The server listens on port 8080. The image does not define a Docker health check
 
 OCI labels identify the author, title, description, base image, `kode-blox` vendor, `Apache-2.0` license, and planned GHCR package at `ghcr.io/kode-blox/autodidact`. The documentation label points to the planned site at `https://autodidact.kodeblox.com`. Building locally does not publish the image or create the documentation site. Third-party dependencies retain their own licenses and notices.
 
-See [architecture](docs/architecture.md), [course authoring](docs/authoring.md), and [self-hosting](docs/self-hosting.md) for details.
+## Documentation
+
+The Fumadocs site in `docs/` covers [self-hosting](docs/content/docs/self-hosting.md), [course authoring](docs/content/docs/authoring.md), and [architecture](docs/content/docs/architecture.md). See the [docs workspace](docs/README.md) to preview and build the static site.
 
 ## License
 

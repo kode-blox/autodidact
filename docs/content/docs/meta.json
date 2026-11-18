@@ -1,0 +1,10 @@
+{
+  "title": "AutoDidact Docs",
+  "pages": [
+    "---Get started---",
+    "self-hosting",
+    "authoring",
+    "---Understand the system---",
+    "architecture"
+  ]
+}

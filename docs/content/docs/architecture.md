@@ -1,4 +1,7 @@
-# Architecture
+---
+title: Architecture
+description: Rendering, content identity, learner state, and deployment boundaries.
+---
 
 AutoDidact combines server-rendered course pages with interactive reading tools and learner state stored in S3-compatible object storage in one Next.js application. Each deployment serves one learner through one active application process; horizontal scaling is outside the supported scope.
 
@@ -6,7 +9,7 @@ AutoDidact combines server-rendered course pages with interactive reading tools 
 
 Next.js runs the Fumadocs reader and backend endpoints on Node 26. React components provide interactive controls and on-demand panels. Next.js renders course HTML per request so preview URLs use the deployment origin. Markdown exports and Open Graph images are generated at build time, while learner-state endpoints run on demand. The project uses strict TypeScript and npm, with resolved dependencies in the lockfile.
 
-Fumadocs processes the repository's Markdown course content. Rendering supports GFM, KaTeX equations, details/summary hints, and Mermaid diagrams. Authored HTML is sanitized; Mermaid uses strict security mode and SVG text labels. Course changes are published by rebuilding and redeploying the application; the runtime does not edit content.
+Fumadocs processes the repository's Markdown course content. Rendering supports GFM, KaTeX equations, details/summary hints, and Mermaid diagrams. Authored HTML is sanitized; Mermaid uses loose security mode and a theme-aware diagram viewer. Course changes are published by rebuilding and redeploying the application; the runtime does not edit content.
 
 Course structure and permanent authored IDs determine navigation. Fumadocs search uses a separate index for each course. Validation checks the published content and links before publication.
 
@@ -14,7 +17,7 @@ Course structure and permanent authored IDs determine navigation. Fumadocs searc
 
 Each course has a permanent ID and ordered module IDs. Modules have course-scoped IDs and ordered lesson IDs. Lessons contain their permanent ID, course ID, title, and Markdown. The ordered lists define membership and sequence.
 
-Course IDs are unique across the project; module and lesson IDs are unique within their course. Authored identities determine collection IDs and learner-state keys. File paths, titles, order, and content revisions do not determine persistence identity. Publication validates raw authored IDs before collection deduplication, then checks references, single membership, rendered heading anchors, and assets. [Course authoring](authoring.md) describes the source format and published URL rules.
+Course IDs are unique across the project; module and lesson IDs are unique within their course. Authored identities determine collection IDs and learner-state keys. File paths, titles, order, and content revisions do not determine persistence identity. Publication validates raw authored IDs before collection deduplication, then checks references, single membership, rendered heading anchors, and assets. [Course authoring](./authoring.md) describes the source format and published URL rules.
 
 ## Learner state
 
@@ -32,4 +35,4 @@ External authentication protects the entire application origin, including pages,
 
 Experiments have dedicated responses with a CSP sandbox and are embedded in sandboxed frames without same-origin permission. The response-level sandbox also applies when an experiment URL is opened directly. Experiment scripts cannot access learner data or application storage.
 
-The runtime image contains the Next.js standalone server, its traced runtime dependencies, and static assets. Learner state survives container replacement in the external bucket; there are no persistent container volumes or migration jobs. Startup does not create storage resources. The readiness endpoint checks read access through a non-mutating request under the configured prefix; it does not verify write permission. Kubernetes deployments use one replica and the `Recreate` strategy so old and new application processes do not overlap. [Self-hosting](self-hosting.md) covers storage configuration, authentication, backups, and contributor checks.
+The runtime image contains the Next.js standalone server, its traced runtime dependencies, and static assets. Learner state survives container replacement in the external bucket; there are no persistent container volumes or migration jobs. Startup does not create storage resources. The readiness endpoint checks read access through a non-mutating request under the configured prefix; it does not verify write permission. Kubernetes deployments use one replica and the `Recreate` strategy so old and new application processes do not overlap. [Self-hosting](./self-hosting.md) covers storage configuration, authentication, backups, and contributor checks.

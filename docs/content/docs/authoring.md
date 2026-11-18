@@ -1,6 +1,9 @@
-# Authoring and publishing courses
+---
+title: Authoring and publishing courses
+description: Create and publish courses, lessons, and browser experiments.
+---
 
-Create and edit content in this repository, commit it, then rebuild and redeploy. The application does not edit courses. The included Unreal course contains two GPU lessons; neither publication nor runtime needs the source vault.
+Create and edit content in this repository, commit it, then rebuild and redeploy. The application does not edit courses. The included Unreal course contains two GPU lessons, and Rust for Experienced Developers contains two introductory lessons. Neither publication nor runtime needs the source vault.
 
 Course entries named `course.md`, module entries named `module.md`, and Markdown directly inside `lessons/` directories live under `content/courses/`. The existing Unreal directory shows the complete format. Quote numeric-looking IDs in YAML.
 

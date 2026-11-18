@@ -1,4 +1,7 @@
-# Self-hosting AutoDidact
+---
+title: Self-hosting AutoDidact
+description: Configure storage, authentication, deployment, and backups for an AutoDidact instance.
+---
 
 AutoDidact serves published course content and one learner's shared state per deployment. A private S3-compatible bucket stores completion, reading positions, and notes as JSON documents. Application containers do not store learner state in their filesystem. Course Markdown and assets live in this repository and are compiled at build time. Course HTML is rendered for each request so Open Graph metadata uses the deployment origin; it does not read Markdown source files from the runtime filesystem. Publish content changes by rebuilding and redeploying the image.
 
