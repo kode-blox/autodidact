@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'LICENSE*'
+      - '.idea/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  detect-delivery-changes:
+    name: Detect Delivery Changes
+    permissions:
+      contents: read
+    uses: $/.github/workflows/detect-delivery-changes.yaml
+
+  deliver-documentation:
+    name: Deliver Documentation
+    if: needs.detect-delivery-changes.outputs.documentation-changed == 'true'
+    needs:
+      - detect-delivery-changes
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+    uses: $/.github/workflows/deliver-documentation.yaml

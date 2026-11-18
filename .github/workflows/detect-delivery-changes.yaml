@@ -1,0 +1,51 @@
+name: Detect Delivery Changes
+
+on:
+  workflow_call:
+    outputs:
+      documentation-changed:
+        description: Whether documentation files changed in the selected event range
+        value: ${{ jobs.detect-changes.outputs.documentation-changed }}
+
+permissions: {}
+
+jobs:
+  detect-changes:
+    name: Detect delivery changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      documentation-changed: ${{ steps.documentation.outputs.changed == 'true' }}
+
+    steps:
+      - name: Checkout event commit history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          fetch-tags: false
+          persist-credentials: false
+          sparse-checkout: |
+            .github/workflows/detect-delivery-changes.yaml
+            .github/scripts/Resolve-DeliveryEventRange.ps1
+          sparse-checkout-cone-mode: false
+
+      - id: event-range
+        name: Resolve event range
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SELECTED_SHA: ${{ github.sha }}
+        run: ./.github/scripts/Resolve-DeliveryEventRange.ps1
+
+      - id: documentation
+        name: Detect documentation changes
+        uses: SayakMukhopadhyay/github-actions/is-file-changed@v1
+        with:
+          base-ref: ${{ steps.event-range.outputs.base-ref }}
+          head-ref: ${{ steps.event-range.outputs.head-ref }}
+          pattern: '^(?:\.github/workflows/deliver-documentation\.yaml|\.nvmrc|docs/.+|package-lock\.json|package\.json)$'
