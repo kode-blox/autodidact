@@ -29,5 +29,5 @@ COPY --from=build --chown=node:node /home/node/app/.next/standalone ./
 COPY --from=build --chown=node:node /home/node/app/.next/static ./.next/static
 COPY --from=build --chown=node:node /home/node/app/public ./public
 COPY --chown=node:node LICENSE ./
-EXPOSE 8080
+EXPOSE 8080 9090
 CMD ["node", "server.js"]

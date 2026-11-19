@@ -26,9 +26,16 @@ test(
   'production courses retain Markdown exports, negotiation, controls, and Open Graph images',
   { timeout: 60_000 },
   async () => {
-    const origin = 'http://localhost:4343';
-    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', 'localhost'], {
-      env: { ...process.env, HOSTNAME: 'localhost', PORT: '4343', APP_ORIGIN: 'https://reader.example.test' },
+    const hostname = '127.0.0.1';
+    const origin = `http://${hostname}:4343`;
+    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', hostname], {
+      env: {
+        ...process.env,
+        HOSTNAME: hostname,
+        PORT: '4343',
+        AUTODIDACT_METRICS_PORT: '4344',
+        APP_ORIGIN: 'https://reader.example.test',
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     });

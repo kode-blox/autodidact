@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1164.0",
+    "@opentelemetry/exporter-prometheus": "0.301.2",
+    "@opentelemetry/sdk-metrics": "3.1.1",
     "cn": "^0.5.2",
     "d3": "^7.9.2",
     "fumadocs-core": "16.18.4",

@@ -4,6 +4,7 @@
 !package.json
 !package-lock.json
 !next.config.js
+!instrumentation.ts
 !proxy.ts
 !postcss.config.js
 !source.config.ts

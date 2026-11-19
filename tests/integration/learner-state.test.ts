@@ -31,6 +31,7 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
         AWS_SESSION_TOKEN: '',
         HOSTNAME: '127.0.0.1',
         PORT: new URL(origin).port,
+        AUTODIDACT_METRICS_PORT: '4342',
         APP_ORIGIN: origin,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
