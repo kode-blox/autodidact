@@ -1,0 +1,16 @@
+AutoDidact has been installed in namespace {{ .Release.Namespace }}.
+
+The reader is available through Service:
+  {{ include "autodidact.fullname" . }}:{{ .Values.publicService.port }}
+
+The metrics endpoint is cluster-internal through:
+  {{ include "autodidact.fullname" . }}-metrics:{{ .Values.metricsService.port }}/metrics
+
+{{- if .Values.gateway.enabled }}
+Configured Gateway hosts:
+{{- range .Values.gateway.hosts }}
+  {{ .host }}
+{{- end }}
+{{- else }}
+For port-forward access, match the local address to AUTODIDACT_PUBLIC_URL.
+{{- end }}

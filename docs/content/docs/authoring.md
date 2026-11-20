@@ -3,9 +3,9 @@ title: Authoring and publishing courses
 description: Create and publish courses, lessons, and browser experiments.
 ---
 
-Create and edit content in this repository, commit it, then rebuild and redeploy. The application does not edit courses. The included Unreal course contains two GPU lessons, and Rust for Experienced Developers contains two introductory lessons. Neither publication nor runtime needs the source vault.
+The image ships the courses from `content/courses`. Keep your own courses in a directory you can mount read-only in its place. See [Self-hosting](./self-hosting.md) for the course and asset mounts.
 
-Course entries named `course.md`, module entries named `module.md`, and Markdown directly inside `lessons/` directories live under `content/courses/`. The existing Unreal directory shows the complete format. Quote numeric-looking IDs in YAML.
+Use `course.md` for course entries, `module.md` for module entries, and Markdown directly inside `lessons/` directories. Put course images and downloads under `public/course-assets/` and link to them with URLs such as `/course-assets/setup.png`. Quote numeric-looking IDs in YAML.
 
 ```yaml
 # course.md frontmatter
@@ -45,8 +45,8 @@ Link to published lessons with `/courses/{course-id}/{lesson-id}#heading-anchor`
 
 Declare an experiment on its course using `{ id: compute-dispatch, title: Compute dispatch, file: experiments/compute-dispatch.html }`. Experiment files must be flat HTML files under that course's `experiments/` directory. Dedicated responses enforce a sandbox even when opened directly; scripts cannot access application storage or learner APIs. Keep experiments self-contained: network requests, forms, same-origin access, and external script/style loading are unavailable.
 
-Run `npm run types:check` and `npm run build` before publishing. Fumadocs compiles the lesson Markdown, and the application validates course structure and published references and prepares course-scoped search data. Publish the resulting image after checks pass.
+The reader compiles Markdown at startup, validates the course structure and published references, and prepares course-scoped search data. Restart the deployment after updating mounted courses or assets.
 
 Published overview and lesson pages retain the scaffold Markdown-copy/view controls and Open Graph preview images. Markdown is also available from `/llms.txt`, `/llms-full.txt`, the page URL with a `.md` suffix, or by requesting the page with `Accept: text/markdown`. These exports contain authored course content, not learner notes, completion, or resume state. Processed Markdown retains the native Fumadocs authored-link text; the HTML reader resolves supported relative Markdown links to permanent ID URLs.
 
-The source course remains portable Markdown and accompanying files. To export it, copy its course directory plus any referenced public assets, or use Git's normal repository/archive workflow. Learner notes, completion, and resume live in the configured S3 bucket prefix and require a separate backup. Course changes preserve learner IDs, and a missing resume heading falls back to its lesson.
+The source course remains portable Markdown and accompanying files. To export it, copy its course directory plus any referenced public assets, or use Git's normal repository/archive workflow. Learner notes, completion, and resume live in the configured S3 bucket and require a separate backup. Course changes preserve learner IDs, and a missing resume heading falls back to its lesson.

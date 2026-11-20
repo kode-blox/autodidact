@@ -44,7 +44,8 @@ export function checkMutation(request: Request): void {
   }
 
   const origin = request.headers.get('origin');
-  const expected = process.env.APP_ORIGIN ? new URL(process.env.APP_ORIGIN).origin : new URL(request.url).origin;
+  const configuredOrigin = process.env.AUTODIDACT_PUBLIC_URL;
+  const expected = configuredOrigin ? new URL(configuredOrigin).origin : new URL(request.url).origin;
 
   if (!origin || origin !== expected) {
     throw new HttpError(403, 'Origin is not allowed.');

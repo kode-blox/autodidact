@@ -17,20 +17,23 @@ test('state validation rejects coercion and oversized notes', () => {
 test('mutation checks enforce JSON and same origin', () => {
   const make = (headers: Record<string, string>) =>
     new Request('https://example.test/api/state', { method: 'PUT', headers });
-  const previous = process.env.APP_ORIGIN;
-  delete process.env.APP_ORIGIN;
+  const previous = process.env.AUTODIDACT_PUBLIC_URL;
+  delete process.env.AUTODIDACT_PUBLIC_URL;
   try {
     const headers = { origin: 'https://example.test', 'content-type': 'application/json; charset=utf-8' };
     assert.doesNotThrow(() => checkMutation(make(headers)));
     assert.throws(() => checkMutation(make({ ...headers, origin: 'https://elsewhere.test' })));
     assert.throws(() => checkMutation(make({ ...headers, 'sec-fetch-site': 'cross-site' })));
     assert.throws(() => checkMutation(make({ origin: headers.origin })));
-    process.env.APP_ORIGIN = 'https://public.test';
+    process.env.AUTODIDACT_PUBLIC_URL = 'https://public.test';
     assert.throws(() => checkMutation(make(headers)));
     assert.doesNotThrow(() => checkMutation(make({ ...headers, origin: 'https://public.test' })));
   } finally {
-    if (previous === undefined) delete process.env.APP_ORIGIN;
-    else process.env.APP_ORIGIN = previous;
+    if (previous === undefined) {
+      delete process.env.AUTODIDACT_PUBLIC_URL;
+    } else {
+      process.env.AUTODIDACT_PUBLIC_URL = previous;
+    }
   }
 });
 

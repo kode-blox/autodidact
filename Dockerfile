@@ -11,7 +11,7 @@ FROM base AS build
 COPY --chown=node:node package.json package-lock.json ./
 RUN --mount=type=cache,target=/home/node/.npm,uid=1000,gid=1000 npm ci
 COPY --chown=node:node . .
-RUN BUILD_STANDALONE=1 npm run build
+RUN AUTODIDACT_BUILD_STANDALONE=1 npm run build
 
 FROM base AS production
 ARG NODE_VERSION
@@ -27,6 +27,7 @@ LABEL org.opencontainers.image.authors="Sayak Mukhopadhyay" \
 ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=8080
 COPY --from=build --chown=node:node /home/node/app/.next/standalone ./
 COPY --from=build --chown=node:node /home/node/app/.next/static ./.next/static
+COPY --from=build --chown=node:node /home/node/app/content/courses ./content/courses
 COPY --from=build --chown=node:node /home/node/app/public ./public
 COPY --chown=node:node LICENSE ./
 EXPOSE 8080 9090

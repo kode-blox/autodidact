@@ -18,7 +18,10 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { getPageImageUrl } from '@/lib/shared';
 
-export function metadataOrigin(requestHeaders: Pick<Headers, 'get'>, configuredOrigin = process.env.APP_ORIGIN): URL {
+export function metadataOrigin(
+  requestHeaders: Pick<Headers, 'get'>,
+  configuredOrigin = process.env.AUTODIDACT_PUBLIC_URL,
+): URL {
   if (configuredOrigin) {
     return new URL(configuredOrigin);
   }
@@ -26,7 +29,7 @@ export function metadataOrigin(requestHeaders: Pick<Headers, 'get'>, configuredO
   const host = (requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host'))?.split(',')[0].trim();
 
   if (!host) {
-    throw new Error('A request host or APP_ORIGIN is required for page metadata');
+    throw new Error('A request host or AUTODIDACT_PUBLIC_URL is required for page metadata');
   }
 
   const protocol = requestHeaders.get('x-forwarded-proto')?.split(',')[0].trim() === 'https' ? 'https' : 'http';
@@ -38,7 +41,7 @@ export async function getPageMetadata(page: {
   slugs: string[];
   data: { title: string; description?: string };
 }): Promise<Metadata> {
-  // Read request headers even with APP_ORIGIN so build-time rendering cannot
+  // Read request headers even with AUTODIDACT_PUBLIC_URL so build-time rendering cannot
   // bake a different deployment's origin into generated Open Graph metadata.
   const requestHeaders = await headers();
   return {

@@ -16,16 +16,16 @@ Each AutoDidact deployment serves one learner. An external authentication gatewa
 | Boundary                               | Security requirement                                                                                                                       |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Browser and application origin         | Protect every page, API route, experiment, and asset. Serve the origin over HTTPS and block direct access to the app when using a gateway. |
-| Application and object storage         | Keep the bucket private and limit the runtime identity to the permissions needed for its dedicated prefix.                                 |
-| Course repository and deployed reader  | Publish course content and experiment files from trusted authors through the repository build.                                             |
+| Application and object storage         | Keep the bucket private and limit the runtime identity to the permissions it needs on that bucket.                                         |
+| Course files and public assets         | Supply courses, experiments, and assets from trusted authors through read-only mounts.                                                     |
 | Interactive experiments and the reader | Isolate experiment scripts in a browser sandbox.                                                                                           |
 
 ## Controls
 
 ### Access and learner state
 
-- State-changing API routes check the request's `Origin` header against the browser-facing origin. Set `APP_ORIGIN` explicitly for production.
-- The application keeps object storage credentials on the server. Learner documents use permanent course and lesson IDs and live under the deployment's dedicated prefix.
+- State-changing API routes check the request's `Origin` header against the browser-facing origin. Set `AUTODIDACT_PUBLIC_URL` explicitly for production.
+- The application keeps object storage credentials on the server. Learner documents use permanent course and lesson IDs and live in the deployment's dedicated bucket.
 - The server compares the revision supplied by the browser with the stored revision to detect stale edits. Conditional S3 writes protect the document if it changes between the server's read and write.
 
 ### Course content and workloads
@@ -36,7 +36,7 @@ Each AutoDidact deployment serves one learner. An external authentication gatewa
 
 ## Accepted limitations
 
-- Everyone admitted to a deployment can access the same learner state. Give each learner a separate deployment and storage prefix.
+- Everyone admitted to a deployment can access the same learner state. Give each learner a separate deployment and storage bucket.
 - The course pipeline assumes authors are trusted. Mermaid renders course diagrams in `loose` mode.
 - A principal with direct write access to the bucket can change learner state outside the application. Scope storage credentials to the deployment and keep independent backups.
 - The supported deployment uses one active application instance and a storage provider that supports conditional writes and strongly consistent reads.

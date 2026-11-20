@@ -31,7 +31,7 @@ test('S3 learner documents preserve state across clients and reject competing no
     clients.push(client);
     return new StateStore(
       new S3DocumentStore(
-        { bucket: server.bucket, endpoint: server.endpoint, prefix: 'test/', region: 'test', forcePathStyle: true },
+        { bucket: server.bucket, endpoint: server.endpoint, region: 'test', forcePathStyle: true },
         client,
       ),
     );

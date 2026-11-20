@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { startS3Server } from '@/tests/helpers/s3-server';
@@ -14,25 +13,23 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
   const courseId = 'ue584';
   const origin = 'http://127.0.0.1:4341';
   const s3 = await startS3Server();
-  const prefix = `integration-${randomUUID()}/`;
   const children: ChildProcess[] = [];
 
   async function startApp() {
     const child = spawn(process.execPath, [nextCli, 'start', '--hostname', '127.0.0.1'], {
       env: {
         ...process.env,
-        S3_ENDPOINT: s3.endpoint,
-        S3_REGION: 'test-region',
-        S3_BUCKET: s3.bucket,
-        S3_PREFIX: prefix,
-        S3_FORCE_PATH_STYLE: 'true',
+        AUTODIDACT_S3_ENDPOINT: s3.endpoint,
+        AUTODIDACT_S3_REGION: 'test-region',
+        AUTODIDACT_S3_BUCKET: s3.bucket,
+        AUTODIDACT_S3_USE_PATH_STYLE: 'true',
         AWS_ACCESS_KEY_ID: 'integration-access-key',
         AWS_SECRET_ACCESS_KEY: 'integration-secret-key',
         AWS_SESSION_TOKEN: '',
         HOSTNAME: '127.0.0.1',
         PORT: new URL(origin).port,
         AUTODIDACT_METRICS_PORT: '4342',
-        APP_ORIGIN: origin,
+        AUTODIDACT_PUBLIC_URL: origin,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
@@ -189,7 +186,12 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
     assert.equal(s3.errors.length, 0, 'S3 fixture saw an unexpected request.');
     assert.ok(s3.requests.some((request) => request.method === 'PUT' && request.ifNoneMatch === '*'));
     assert.ok(s3.requests.some((request) => request.method === 'PUT' && request.ifMatch));
-    assert.ok([...s3.objects.keys()].every((key) => key.startsWith(prefix)));
+    assert.deepEqual([...s3.objects.keys()].sort(), [
+      `courses/${courseId}/lessons/05-01/completion.json`,
+      `courses/${courseId}/lessons/05-01/note.json`,
+      `courses/${courseId}/lessons/05-02/completion.json`,
+      `courses/${courseId}/resume.json`,
+    ]);
     console.info(
       'S3 integration passed: note conflicts, per-lesson completion, resume conflicts, nonmutating readiness, and restart persistence.',
     );

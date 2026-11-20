@@ -4,7 +4,7 @@ AutoDidact is an open-source, self-hosted course reader for personal learning. P
 
 ## Courses and studying
 
-The application and its course content live in one repository. Authors edit Markdown and supporting assets outside the application, commit their changes, then rebuild and redeploy to publish them. The reader provides course switching, ordered modules and lessons, search, formatted code, tables, equations, diagrams, collapsible hints, and browser experiments.
+The reader compiles the bundled courses in `content/courses` at startup. You can replace the courses and supply their assets through read-only mounts. The reader provides course switching, ordered modules and lessons, search, formatted code, tables, equations, diagrams, collapsible hints, and browser experiments.
 
 Lessons remain accessible regardless of completion or prerequisites. Lesson notes open on demand. There are no grades or locked lessons.
 
@@ -22,19 +22,13 @@ AutoDidact requires an internet connection. A deployment contains one learner's 
 
 Next.js serves the Fumadocs reader and backend endpoints, with React for interactive controls and JSON documents in a private S3-compatible bucket for persistence. Run exactly one active application instance per deployment; horizontal scaling is not supported.
 
-Course updates use the repository's normal build and deployment workflow. The application has no course editor. Interactive experiments run in the browser; native Unreal Engine and Rider labs remain instructions for the learner to perform on their desktop.
-
-## Included courses
-
-The Unreal Engine Development course contains lessons 05-01 and 05-02 about GPU shader stages, resource bindings, and compute dispatch against stock UE 5.8.4, together with the compute-dispatch experiment. The published content is independent of the source vault.
-
-Rust for Experienced Developers starts with two lessons about ownership at function boundaries and shared state with `Arc` and `Mutex`. It assumes programming experience and uses small, runnable examples to explain Rust's ownership model.
+Authors edit courses outside the application. Interactive experiments run in the browser. Native Unreal Engine and Rider labs remain instructions for the learner to perform on their desktop.
 
 ## Run locally
 
-The standalone Docker image runs AutoDidact as one application server using an existing private, unversioned S3-compatible bucket for learner state. No persistent container volume is required.
+The standalone Docker image runs AutoDidact as one application server and stores learner state in an existing private, unversioned S3-compatible bucket.
 
-Copy `.env.example` to `.env`, configure the bucket, endpoint, region, server credentials, and browser-facing origin, then run:
+Copy `.env.example` to `.env` and configure storage and the browser-facing origin.
 
 ```sh
 docker build -t autodidact .
@@ -44,13 +38,15 @@ docker logs autodidact
 
 The default local address is <http://127.0.0.1:8080>. Supply external authentication covering the entire origin before making it reachable from other devices. See [self-hosting](docs/content/docs/self-hosting.md) for updates and backups.
 
+To replace the bundled files, use the [optional course and asset mounts](docs/content/docs/self-hosting.md#optional-course-and-asset-mounts). Restart the reader after changing mounted files.
+
 ## Docker image
 
-The image uses Node 26.13.0 on Debian Trixie slim. Dependency installation, the build, and the standalone server run as the non-root `node` user. Next.js checks types during the build. Docker selects standalone output and copies `public/` and `.next/static/` into the runtime image alongside the traced server files and the project's `LICENSE`. It does not include the test suite.
+The image uses Node 26.13.0 on Debian Trixie slim. Dependency installation, the build, and the standalone server run as the non-root `node` user. Next.js checks types during the build. Docker selects standalone output and copies `content/courses/`, `public/`, and `.next/static/` into the runtime image alongside the traced server files and the project's `LICENSE`. It does not include the test suite.
 
 The server listens on port 8080. The image does not define a Docker health check; `/api/health` is available for deployment-level monitoring. Runtime secrets are excluded from the build context and supplied through environment variables.
 
-OCI labels identify the author, title, description, base image, `kode-blox` vendor, `Apache-2.0` license, and planned GHCR package at `ghcr.io/kode-blox/autodidact`. The documentation label points to the planned site at `https://autodidact.kodeblox.com`. Building locally does not publish the image or create the documentation site. Third-party dependencies retain their own licenses and notices.
+Release workflows publish the reader to `ghcr.io/kode-blox/autodidact` and its Helm chart to `oci://ghcr.io/kode-blox/charts/autodidact`. See the [self-hosting guide](docs/content/docs/self-hosting.md) for the image and chart configuration. Third-party dependencies retain their own licenses and notices.
 
 ## Documentation
 

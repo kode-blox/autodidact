@@ -31,38 +31,37 @@ export interface StorageConfig {
   bucket: string;
   region: string;
   endpoint?: string;
-  prefix: string;
   forcePathStyle: boolean;
 }
 
 export function storageConfig(env: Readonly<Record<string, string | undefined>> = process.env): StorageConfig {
-  if (!env.S3_BUCKET?.trim() || !env.S3_REGION?.trim()) {
-    throw new Error('S3_BUCKET and S3_REGION are required.');
+  const bucket = env.AUTODIDACT_S3_BUCKET?.trim();
+  const region = env.AUTODIDACT_S3_REGION?.trim();
+
+  if (!bucket || !region) {
+    throw new Error('AUTODIDACT_S3_BUCKET and AUTODIDACT_S3_REGION are required.');
   }
 
-  const endpoint = env.S3_ENDPOINT?.trim() || undefined;
+  const endpoint = env.AUTODIDACT_S3_ENDPOINT?.trim() || undefined;
 
   if (endpoint) {
     const url = new URL(endpoint);
 
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
-      throw new Error('S3_ENDPOINT must be an HTTP(S) URL without credentials, query, or fragment.');
+      throw new Error('AUTODIDACT_S3_ENDPOINT must be an HTTP(S) URL without credentials, query, or fragment.');
     }
   }
 
-  const pathStyle = env.S3_FORCE_PATH_STYLE;
+  const pathStyle = env.AUTODIDACT_S3_USE_PATH_STYLE;
 
   if (pathStyle !== undefined && pathStyle !== '' && pathStyle !== 'true' && pathStyle !== 'false') {
-    throw new Error('S3_FORCE_PATH_STYLE must be true or false.');
+    throw new Error('AUTODIDACT_S3_USE_PATH_STYLE must be true or false.');
   }
 
-  const prefix = env.S3_PREFIX ?? 'autodidact/';
-
   return {
-    bucket: env.S3_BUCKET.trim(),
-    region: env.S3_REGION.trim(),
+    bucket,
+    region,
     endpoint,
-    prefix: prefix && !prefix.endsWith('/') ? `${prefix}/` : prefix,
     forcePathStyle: pathStyle ? pathStyle === 'true' : !!endpoint,
   };
 }
@@ -98,9 +97,7 @@ export class S3DocumentStore implements DocumentStore {
     let response;
 
     try {
-      response = await this.client.send(
-        new GetObjectCommand({ Bucket: this.config.bucket, Key: this.config.prefix + key }),
-      );
+      response = await this.client.send(new GetObjectCommand({ Bucket: this.config.bucket, Key: key }));
     } catch (error) {
       // Only a missing key represents absent state. Configuration, permission,
       // and service errors must never silently reset the learner's documents.
@@ -152,7 +149,7 @@ export class S3DocumentStore implements DocumentStore {
         await this.client.send(
           new PutObjectCommand({
             Bucket: this.config.bucket,
-            Key: this.config.prefix + key,
+            Key: key,
             Body: body,
             ContentType: 'application/json',
             ...(etag === null ? { IfNoneMatch: '*' } : { IfMatch: etag }),
@@ -178,7 +175,7 @@ export class S3DocumentStore implements DocumentStore {
   }
 
   async check(): Promise<void> {
-    // Probe GetObject access inside the configured prefix without changing data
+    // Probe GetObject access to the configured bucket without changing data
     // or listing objects. Providers may require bucket-list permission to
     // distinguish a missing probe key from denied access. Writes are not tested.
     await this.read(documentKey('health'));

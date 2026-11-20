@@ -2,10 +2,59 @@ name: CI
 
 on:
   workflow_call:
+    outputs:
+      application-version:
+        description: Validated application version from the root VERSION file
+        value: ${{ jobs.build-node.outputs.application-version }}
 
 permissions: {}
 
 jobs:
+  build-node:
+    name: Build Node
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      application-version: ${{ steps.versions.outputs.application-version }}
+
+    steps:
+      - name: Checkout and install dependencies
+        uses: SayakMukhopadhyay/github-actions/checkout-dependencies@v1
+        with:
+          node-version-file: .nvmrc
+          working-directory: .
+
+      - name: Validate version metadata
+        uses: SayakMukhopadhyay/github-actions/check-version@v1
+        with:
+          working-directory: .
+          helm: 'true'
+
+      - id: versions
+        name: Read validated application version
+        shell: bash
+        run: printf 'application-version=%s\n' "$(<VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check application types
+        run: npm run types:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Test production server
+        run: npm run test:integration
+
+      - name: Validate GitHub Actions workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
   codeql:
     name: Analyze with CodeQL
     runs-on: ubuntu-latest
@@ -38,3 +87,58 @@ jobs:
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
+
+  dependency-review:
+    name: Review Dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate
+
+  build-helm:
+    name: Build Helm
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Validate and package chart
+        uses: SayakMukhopadhyay/github-actions/helm-package-push@v1
+        with:
+          app-version: build-${{ github.sha }}
+          push: 'false'
+          working-directory: .
+
+      - name: Render chart
+        run: helm template autodidact charts > /dev/null
+
+      - name: Render optional chart features
+        run: |
+          helm template autodidact charts \
+            --set environmentsVars.AUTODIDACT_PUBLIC_URL=https://learn.example.test \
+            --set environmentsVars.AUTODIDACT_S3_BUCKET=ci-learning \
+            --set environmentsVars.AUTODIDACT_S3_REGION=us-east-1 \
+            --set gateway.enabled=true \
+            --set 'gateway.hosts[0].host=learn.example.test' \
+            --set 'gateway.rules[0].path=/' \
+            --set 'gateway.rules[0].middlewares[0]=ci-authentication' \
+            --set externalSecrets.enabled=true \
+            --set externalSecrets.secretStore=ci-secret-store \
+            --set externalSecrets.targetSecretName=autodidact-ci \
+            --set 'externalSecrets.secrets[0].secretKey=AWS_ACCESS_KEY_ID' \
+            --set 'externalSecrets.secrets[0].remoteRef.key=ci/autodidact/access-key' \
+            --set namespace.create=true \
+            --set serviceMonitor.enabled=true \
+            --set serviceAccount.create=true \
+            > /dev/null

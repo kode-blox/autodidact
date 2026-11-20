@@ -1,0 +1,147 @@
+# Default values for AutoDidact.
+
+# AutoDidact supports one active process for each learner-state bucket.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/kode-blox/autodidact
+  pullPolicy: IfNotPresent
+  tag: ""
+
+kubernetesComponent: server
+
+# Non-secret AutoDidact configuration rendered into the chart-managed ConfigMap.
+environmentsVars:
+  AUTODIDACT_PUBLIC_URL: https://learn.example.com
+  AUTODIDACT_S3_ENDPOINT: https://s3.example.com
+  AUTODIDACT_S3_REGION: us-east-1
+  AUTODIDACT_S3_BUCKET: autodidact
+  AUTODIDACT_S3_USE_PATH_STYLE: "false"
+
+# Optional additional ConfigMap merged after the chart-managed ConfigMap.
+extraEnvVarsConfigMap: ""
+
+# Existing Secret containing AWS credentials. Used when externalSecrets.enabled is false.
+secret:
+  existingSecret: autodidact
+
+externalSecrets:
+  enabled: false
+  secretStore: ""
+  refreshInterval: 1h
+  targetSecretName: ""
+  secrets: []
+  # - secretKey: AWS_ACCESS_KEY_ID
+  #   remoteRef:
+  #     key: autodidact/s3-access-key-id
+  # - secretKey: AWS_SECRET_ACCESS_KEY
+  #   remoteRef:
+  #     key: autodidact/s3-secret-access-key
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+containerPorts:
+  http: 8080
+  metrics: 9090
+
+publicService:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+metricsService:
+  type: ClusterIP
+  port: 9090
+  annotations: {}
+
+gateway:
+  enabled: false
+  className: traefik
+  annotations: {}
+  listenerName: cloudflare
+  port: 8001
+  hosts:
+    - host: learn.example.com
+  rules:
+    - path: /
+      middlewares: []
+      backend: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+# A storage outage should affect readiness without causing repeated restarts.
+livenessProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 2
+  failureThreshold: 60
+
+terminationGracePeriodSeconds: 30
+
+volumes:
+  - name: next-cache
+    emptyDir: {}
+volumeMounts:
+  - name: next-cache
+    mountPath: /home/node/app/.next/cache
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+namespace:
+  create: false
+  labels: {}
+  annotations: {}
+
+serviceMonitor:
+  enabled: false
+  labels: {}
+  interval: 30s
+  scrapeTimeout: 10s

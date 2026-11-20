@@ -29,16 +29,9 @@ import { getMDXComponents } from '@/components/mdx';
 import { source } from '@/lib/source';
 import { getPageMetadata } from '@/lib/metadata';
 import { getPageGitHubUrl, getPageMarkdownUrl, lessonUrl } from '@/lib/shared';
-import { getCatalog, getCourse } from '@/lib/content/catalog';
+import { getCourse } from '@/lib/content/catalog';
 import CourseOverview from '@/components/course-overview';
 import ReaderTools, { OverviewLessonLink } from '@/components/reader-tools';
-
-export function generateStaticParams() {
-  return getCatalog().flatMap((course) => [
-    { course: course.id, slug: [] },
-    ...course.lessons.map((lesson) => ({ course: course.id, slug: [lesson.id] })),
-  ]);
-}
 
 async function getCoursePage({ params }: PageProps<'/courses/[course]/[[...slug]]'>) {
   const { course: courseId, slug = [] } = await params;
@@ -79,7 +72,10 @@ export default async function Page(props: PageProps<'/courses/[course]/[[...slug
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b pb-6">
         <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={getPageGitHubUrl(page)} />
+        <ViewOptionsPopover
+          markdownUrl={markdownUrl}
+          githubUrl={process.env.NODE_ENV === 'development' ? getPageGitHubUrl(page) : undefined}
+        />
       </div>
       {lessonId ? (
         <ReaderTools

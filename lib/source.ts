@@ -17,39 +17,21 @@
 import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 import { docsRoute } from '@/lib/shared';
-import { defineCollections } from 'fumadocs-mdx/macro';
-import { courseCollectionSchema, moduleCollectionSchema, lessonCollectionSchema } from '@/lib/content/schemas';
+import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
+import { loadCourseCollections } from '@/lib/content/runtime';
 
-export const courseDocuments = defineCollections({
-  type: 'doc',
-  dir: 'content/courses',
-  files: ['**/course.md'],
-  schema: courseCollectionSchema,
-  postprocess: { includeProcessedMarkdown: true, valueToExport: ['authoredLinks'] },
-});
+const collections = await loadCourseCollections();
 
-export const moduleDocuments = defineCollections({
-  type: 'doc',
-  dir: 'content/courses',
-  files: ['**/module.md'],
-  schema: moduleCollectionSchema,
-  postprocess: { valueToExport: ['authoredLinks'] },
-});
-
-export const lessonDocuments = defineCollections({
-  type: 'doc',
-  dir: 'content/courses',
-  files: ['**/lessons/*.md'],
-  schema: lessonCollectionSchema,
-  postprocess: { includeProcessedMarkdown: true, valueToExport: ['authoredLinks'] },
-});
+export const courseDocuments = collections.courseDocuments;
+export const moduleDocuments = collections.moduleDocuments;
+export const lessonDocuments = collections.lessonDocuments;
 
 /** Published URLs use permanent authored IDs, never source paths or titles. */
 export const source = loader({
   baseUrl: docsRoute,
   source: {
-    courses: courseDocuments.toFumadocsSource(),
-    lessons: lessonDocuments.toFumadocsSource(),
+    courses: toFumadocsSource([...courseDocuments.entries], []),
+    lessons: toFumadocsSource([...lessonDocuments.entries], []),
   },
   plugins: [lucideIconsPlugin()],
   slugs: (file) => (file.type === 'courses' ? [file.data.id] : [file.data.course, file.data.id]),

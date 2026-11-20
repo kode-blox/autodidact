@@ -3,6 +3,12 @@ name: Detect Delivery Changes
 on:
   workflow_call:
     outputs:
+      application-changed:
+        description: Whether application files changed in the selected event range
+        value: ${{ jobs.detect-changes.outputs.application-changed }}
+      chart-changed:
+        description: Whether chart files changed in the selected event range
+        value: ${{ jobs.detect-changes.outputs.chart-changed }}
       documentation-changed:
         description: Whether documentation files changed in the selected event range
         value: ${{ jobs.detect-changes.outputs.documentation-changed }}
@@ -17,6 +23,8 @@ jobs:
     permissions:
       contents: read
     outputs:
+      application-changed: ${{ steps.application.outputs.changed == 'true' }}
+      chart-changed: ${{ steps.chart.outputs.changed == 'true' }}
       documentation-changed: ${{ steps.documentation.outputs.changed == 'true' }}
 
     steps:
@@ -41,6 +49,22 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           SELECTED_SHA: ${{ github.sha }}
         run: ./.github/scripts/Resolve-DeliveryEventRange.ps1
+
+      - id: application
+        name: Detect application changes
+        uses: SayakMukhopadhyay/github-actions/is-file-changed@v1
+        with:
+          base-ref: ${{ steps.event-range.outputs.base-ref }}
+          head-ref: ${{ steps.event-range.outputs.head-ref }}
+          pattern: '^(?:Dockerfile|\.dockerignore|package\.json|package-lock\.json|VERSION|next\.config\.js|source\.config\.ts|instrumentation\.ts|proxy\.ts|postcss\.config\.js|tsconfig\.json|(?:app|components|content/courses|lib|server|public)/.+)$'
+
+      - id: chart
+        name: Detect chart changes
+        uses: SayakMukhopadhyay/github-actions/is-file-changed@v1
+        with:
+          base-ref: ${{ steps.event-range.outputs.base-ref }}
+          head-ref: ${{ steps.event-range.outputs.head-ref }}
+          pattern: '^charts/.+$'
 
       - id: documentation
         name: Detect documentation changes

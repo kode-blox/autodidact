@@ -7,7 +7,6 @@ import { startS3Server } from '@/tests/helpers/s3-server';
 const config: StorageConfig = {
   bucket: 'test',
   region: 'test-region',
-  prefix: 'autodidact/',
   forcePathStyle: true,
   endpoint: 'http://localhost:9000',
 };
@@ -17,34 +16,44 @@ function transport(send: (command: unknown) => Promise<unknown>): Pick<S3Client,
 const failure = (name: string) => Object.assign(new Error(name), { name });
 
 test('S3 configuration has explicit required fields and portable defaults', () => {
-  assert.throws(() => storageConfig({}), /S3_BUCKET and S3_REGION/);
-  assert.deepEqual(storageConfig({ S3_BUCKET: 'bucket', S3_REGION: 'region' }), {
+  assert.throws(() => storageConfig({}), /AUTODIDACT_S3_BUCKET and AUTODIDACT_S3_REGION/);
+  assert.deepEqual(storageConfig({ AUTODIDACT_S3_BUCKET: 'bucket', AUTODIDACT_S3_REGION: 'region' }), {
     bucket: 'bucket',
     region: 'region',
     endpoint: undefined,
-    prefix: 'autodidact/',
     forcePathStyle: false,
   });
   const custom = storageConfig({
-    S3_BUCKET: 'bucket',
-    S3_REGION: 'region',
-    S3_ENDPOINT: 'https://fsn1.your-objectstorage.com',
-    S3_PREFIX: 'study',
-    S3_FORCE_PATH_STYLE: 'false',
+    AUTODIDACT_S3_BUCKET: 'bucket',
+    AUTODIDACT_S3_REGION: 'region',
+    AUTODIDACT_S3_ENDPOINT: 'https://fsn1.your-objectstorage.com',
+    AUTODIDACT_S3_USE_PATH_STYLE: 'false',
   });
-  assert.equal(custom.prefix, 'study/');
   assert.equal(custom.forcePathStyle, false);
   assert.equal(
-    storageConfig({ S3_BUCKET: 'bucket', S3_REGION: 'region', S3_ENDPOINT: 'http://localhost:9000', S3_PREFIX: '' })
-      .forcePathStyle,
+    storageConfig({
+      AUTODIDACT_S3_BUCKET: 'bucket',
+      AUTODIDACT_S3_REGION: 'region',
+      AUTODIDACT_S3_ENDPOINT: 'http://localhost:9000',
+    }).forcePathStyle,
     true,
   );
   assert.throws(
-    () => storageConfig({ S3_BUCKET: 'bucket', S3_REGION: 'region', S3_FORCE_PATH_STYLE: 'yes' }),
+    () =>
+      storageConfig({
+        AUTODIDACT_S3_BUCKET: 'bucket',
+        AUTODIDACT_S3_REGION: 'region',
+        AUTODIDACT_S3_USE_PATH_STYLE: 'yes',
+      }),
     /true or false/,
   );
   assert.throws(
-    () => storageConfig({ S3_BUCKET: 'bucket', S3_REGION: 'region', S3_ENDPOINT: 'https://user:secret@example.test' }),
+    () =>
+      storageConfig({
+        AUTODIDACT_S3_BUCKET: 'bucket',
+        AUTODIDACT_S3_REGION: 'region',
+        AUTODIDACT_S3_ENDPOINT: 'https://user:secret@example.test',
+      }),
     /without credentials/,
   );
   assert.notEqual(documentKey('course/a', 'b'), documentKey('course', 'a/b'));
@@ -115,7 +124,7 @@ test('writes use the loaded ETag and explicit conditional creation', async () =>
     assert.equal(commands[0].input.IfMatch, undefined);
     assert.equal(commands[1].input.IfMatch, '"original"');
     assert.equal(commands[1].input.IfNoneMatch, undefined);
-    assert.equal(commands[1].input.Key, 'autodidact/note.json');
+    assert.equal(commands[1].input.Key, 'note.json');
     assert.deepEqual(JSON.parse(commands[1].input.Body as string), { formatVersion: 1, value: { text: 'second' } });
   }
   let readKey: string | undefined;
@@ -127,7 +136,7 @@ test('writes use the loaded ETag and explicit conditional creation', async () =>
       throw failure('NoSuchKey');
     }),
   ).check();
-  assert.equal(readKey, 'autodidact/health.json');
+  assert.equal(readKey, 'health.json');
 });
 
 test('custom endpoints retry bare ETags only after a rejected quoted conditional update', async () => {
@@ -184,7 +193,7 @@ test('real SDK preserves conditional HTTP writes and reads document envelopes', 
     assert.equal(await storage.write('note.json', { text: 'stale' }, original.etag), false);
     assert.deepEqual((await storage.read('note.json'))?.value, { text: 'second' });
     assert.deepEqual(server.errors, []);
-    assert.ok(server.requests.every((request) => !request.key.startsWith('autodidact/autodidact/')));
+    assert.deepEqual([...new Set(server.requests.map((request) => request.key))], ['health.json', 'note.json']);
   } finally {
     client.destroy();
     await server.close();

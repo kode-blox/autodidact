@@ -34,7 +34,7 @@ test(
         HOSTNAME: hostname,
         PORT: '4343',
         AUTODIDACT_METRICS_PORT: '4344',
-        APP_ORIGIN: 'https://reader.example.test',
+        AUTODIDACT_PUBLIC_URL: 'https://reader.example.test',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,

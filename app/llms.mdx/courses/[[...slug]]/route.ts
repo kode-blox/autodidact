@@ -17,28 +17,20 @@
 import { docsLlms } from '@/lib/content/publication';
 import { source } from '@/lib/source';
 import { getCatalog } from '@/lib/content/catalog';
-import { getPageMarkdownUrl } from '@/lib/shared';
 import { notFound } from 'next/navigation';
-
-export const revalidate = false;
 
 export async function GET(_request: Request, { params }: RouteContext<'/llms.mdx/courses/[[...slug]]'>) {
   getCatalog();
 
   const { slug } = await params;
   const page = source.getPage(slug?.slice(0, -1));
-  if (!page || slug?.at(-1) !== 'content.md') notFound();
+  if (!page || slug?.at(-1) !== 'content.md') {
+    notFound();
+  }
 
   return new Response(await docsLlms.page(page), {
     headers: {
       'Content-Type': 'text/markdown',
     },
   });
-}
-
-export function generateStaticParams() {
-  return source.getPages().map((page) => ({
-    lang: page.locale,
-    slug: getPageMarkdownUrl(page).segments,
-  }));
 }

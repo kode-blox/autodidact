@@ -17,6 +17,8 @@
 import Link from 'next/link';
 import { getCatalog } from '@/lib/content/catalog';
 
+export const dynamic = 'force-dynamic';
+
 export default function HomePage() {
   const courses = getCatalog();
   return (
@@ -27,6 +29,11 @@ export default function HomePage() {
         Choose a course. Read at your own pace, keep notes, and return to where you left off.
       </p>
       <div>
+        {courses.length === 0 && (
+          <p className="mt-8 text-fd-muted-foreground">
+            Your library is empty. Add courses to the configured library folder and restart AutoDidact.
+          </p>
+        )}
         {courses.map((course) => (
           <Link
             className="mt-8 block border-y border-fd-border py-8"

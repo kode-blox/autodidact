@@ -70,10 +70,11 @@ test('Fumadocs compilation tracks declared experiments and referenced public fil
 test('experiment bytes are compiled into metadata and public asset removal cannot use stale course metadata', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'autodidact-content-'));
   try {
+    const publicDirectory = path.join(root, 'public');
     await mkdir(path.join(root, 'experiments'));
-    await mkdir(path.join(root, 'public'));
+    await mkdir(publicDirectory);
     const experiment = path.join(root, 'experiments/example.html');
-    const asset = path.join(root, 'public/image.svg');
+    const asset = path.join(publicDirectory, 'image.svg');
     await writeFile(experiment, '<p>First experiment</p>');
     await writeFile(asset, '<svg/>');
     const context = {
@@ -86,19 +87,22 @@ test('experiment bytes are compiled into metadata and public asset removal canno
       modules: ['first'],
       experiments: [{ id: 'example', title: 'Example', file: 'experiments/example.html' }],
     };
-    const first = courseCollectionSchema(context).parse(data);
+    const schema = courseCollectionSchema(context, publicAssetUrls(publicDirectory));
+    const first = schema.parse(data);
     assert.equal(first.experiments[0].html, '<p>First experiment</p>');
+    assert.deepEqual(first.publicUrls, ['/image.svg']);
     await writeFile(experiment, '<p>Updated experiment</p>');
-    assert.equal(courseCollectionSchema(context).parse(data).experiments[0].html, '<p>Updated experiment</p>');
-    await rename(asset, path.join(root, 'public/renamed.svg'));
-    assert.deepEqual(publicAssetUrls(path.join(root, 'public')), ['/renamed.svg']);
+    assert.equal(schema.parse(data).experiments[0].html, '<p>Updated experiment</p>');
+    await rename(asset, path.join(publicDirectory, 'renamed.svg'));
+    const updatedPublicUrls = publicAssetUrls(publicDirectory);
+    assert.deepEqual(updatedPublicUrls, ['/renamed.svg']);
     const documents = await validateDocuments(fixture());
-    documents[0].data.publicUrls = ['/image.svg'];
+    documents[0].data.publicUrls = first.publicUrls;
     documents[2].data.publicUrls = [];
     documents[2].links = ['/image.svg'];
     assert.throws(() => validateCompiledDocuments(documents), /unsafe link/);
     await rm(experiment);
-    const missing = courseCollectionSchema(context).parse(data);
+    const missing = courseCollectionSchema(context, updatedPublicUrls).parse(data);
     assert.equal(missing.experiments[0].html, undefined);
     documents[0].data.experiments = missing.experiments;
     assert.throws(() => validateCompiledDocuments(documents), /missing or unsafe experiment/);

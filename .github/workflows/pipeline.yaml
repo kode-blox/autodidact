@@ -43,3 +43,34 @@ jobs:
       pages: write
       id-token: write
     uses: $/.github/workflows/deliver-documentation.yaml
+
+  validate-container:
+    name: Validate Container
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    needs:
+      - ci
+    permissions:
+      contents: read
+    uses: $/.github/workflows/validate-container.yaml
+    with:
+      application-version: ${{ needs.ci.outputs.application-version }}
+
+  deliver-development:
+    name: Deliver Development
+    if: >-
+      github.event_name == 'push' &&
+      (needs.detect-delivery-changes.outputs.application-changed == 'true' ||
+      needs.detect-delivery-changes.outputs.chart-changed == 'true')
+    needs:
+      - ci
+      - detect-delivery-changes
+    permissions:
+      contents: read
+      packages: write
+    uses: $/.github/workflows/deliver-development.yaml
+    with:
+      deliver-application: ${{ needs.detect-delivery-changes.outputs.application-changed == 'true' }}
+      deliver-chart: ${{ needs.detect-delivery-changes.outputs.chart-changed == 'true' }}
+      application-version: ${{ needs.ci.outputs.application-version }}
+    secrets:
+      GITOPS_APP_PRIVATE_KEY: ${{ secrets.GITOPS_APP_PRIVATE_KEY }}
