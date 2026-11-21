@@ -23,7 +23,9 @@
     "types:check": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "worker:check": "npm run check --workspace=@kode-blox/autodidact-sign-in-router",
+    "worker:deploy": "npm run deploy --workspace=@kode-blox/autodidact-sign-in-router"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1164.0",
@@ -72,6 +74,7 @@
     "esbuild@0.28.2": true
   },
   "workspaces": [
-    "docs"
+    "docs",
+    "workers/**"
   ]
 }
