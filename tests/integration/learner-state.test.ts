@@ -11,12 +11,14 @@ const nextCli = fileURLToPath(import.meta.resolve('next/dist/bin/next'));
 test('S3 learner state survives restart and rejects conflicting updates', { timeout: 60_000 }, async () => {
   // Requires a freshly built application; all storage traffic stays on loopback.
   const courseId = 'ue584';
-  const origin = 'http://127.0.0.1:4341';
+  const bindHostname = 'localhost';
+  const port = '4341';
+  const origin = `http://localhost:${port}`;
   const s3 = await startS3Server();
   const children: ChildProcess[] = [];
 
   async function startApp() {
-    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', '127.0.0.1'], {
+    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', bindHostname], {
       env: {
         ...process.env,
         AUTODIDACT_S3_ENDPOINT: s3.endpoint,
@@ -26,8 +28,8 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
         AWS_ACCESS_KEY_ID: 'integration-access-key',
         AWS_SECRET_ACCESS_KEY: 'integration-secret-key',
         AWS_SESSION_TOKEN: '',
-        HOSTNAME: '127.0.0.1',
-        PORT: new URL(origin).port,
+        HOSTNAME: bindHostname,
+        PORT: port,
         AUTODIDACT_METRICS_PORT: '4342',
         AUTODIDACT_PUBLIC_URL: origin,
       },

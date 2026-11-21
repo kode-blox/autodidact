@@ -26,13 +26,15 @@ test(
   'production courses retain Markdown exports, negotiation, controls, and Open Graph images',
   { timeout: 60_000 },
   async () => {
-    const hostname = '127.0.0.1';
-    const origin = `http://${hostname}:4343`;
-    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', hostname], {
+    // Next.js uses localhost as its canonical loopback hostname for rewrites.
+    const bindHostname = 'localhost';
+    const port = '4343';
+    const origin = `http://localhost:${port}`;
+    const child = spawn(process.execPath, [nextCli, 'start', '--hostname', bindHostname], {
       env: {
         ...process.env,
-        HOSTNAME: hostname,
-        PORT: '4343',
+        HOSTNAME: bindHostname,
+        PORT: port,
         AUTODIDACT_METRICS_PORT: '4344',
         AUTODIDACT_PUBLIC_URL: 'https://reader.example.test',
       },
