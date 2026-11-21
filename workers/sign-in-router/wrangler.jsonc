@@ -11,7 +11,7 @@
   },
   "routes": [
     {
-      "pattern": "https://learn-dev.sayakm.me/*",
+      "pattern": "learn-dev.sayakm.me/*",
       "zone_name": "sayakm.me"
     }
   ]
