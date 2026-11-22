@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { Mermaid } from '@sayakm/fumadocs-shared';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
-import { Mermaid } from '@/components/mdx/mermaid';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {

@@ -16,10 +16,13 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  AccessAwareDocsLayout,
+  AccessAwareHomeLayout as SharedAccessAwareHomeLayout,
+  type AccessAwareDocsLayoutProps,
+  type AccessAwareHomeLayoutProps,
+} from '@sayakm/fumadocs-shared';
 import { usePathname } from 'next/navigation';
-import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/docs';
-import { HomeLayout, type HomeLayoutProps } from 'fumadocs-ui/layouts/home';
 import { baseOptions } from '@/lib/layout.shared';
 
 async function getLogoutUrl(signal: AbortSignal): Promise<string | undefined> {
@@ -41,54 +44,26 @@ async function getLogoutUrl(signal: AbortSignal): Promise<string | undefined> {
   }
 }
 
-function useLogoutUrl() {
+const accessOptions = {
+  getLogoutUrl,
+  getLayoutProps: baseOptions,
+  recheckOnReturn: true,
+};
+
+export function AccessAwareCourseLayout({ tree, children }: Pick<AccessAwareDocsLayoutProps, 'tree' | 'children'>) {
   const pathname = usePathname();
-  const [session, setSession] = useState<{ pathname: string; logoutUrl: string }>();
-
-  useEffect(() => {
-    let controller: AbortController | undefined;
-
-    function checkSession() {
-      controller?.abort();
-      const check = new AbortController();
-      controller = check;
-      void getLogoutUrl(check.signal).then((url) => {
-        if (!check.signal.aborted) setSession(url ? { pathname, logoutUrl: url } : undefined);
-      });
-    }
-
-    function recheckSession() {
-      setSession(undefined);
-      checkSession();
-    }
-
-    function restorePage(event: PageTransitionEvent) {
-      if (event.persisted) recheckSession();
-    }
-
-    checkSession();
-    window.addEventListener('focus', recheckSession);
-    window.addEventListener('pageshow', restorePage);
-    return () => {
-      controller?.abort();
-      window.removeEventListener('focus', recheckSession);
-      window.removeEventListener('pageshow', restorePage);
-    };
-  }, [pathname]);
-
-  return session?.pathname === pathname ? session.logoutUrl : undefined;
-}
-
-export function AccessAwareCourseLayout({ tree, children }: Pick<DocsLayoutProps, 'tree' | 'children'>) {
-  const logoutUrl = useLogoutUrl();
   return (
-    <DocsLayout tree={tree} {...baseOptions(logoutUrl)}>
+    <AccessAwareDocsLayout tree={tree} sessionKey={pathname} {...accessOptions}>
       {children}
-    </DocsLayout>
+    </AccessAwareDocsLayout>
   );
 }
 
-export function AccessAwareHomeLayout({ children }: Pick<HomeLayoutProps, 'children'>) {
-  const logoutUrl = useLogoutUrl();
-  return <HomeLayout {...baseOptions(logoutUrl)}>{children}</HomeLayout>;
+export function AccessAwareHomeLayout({ children }: Pick<AccessAwareHomeLayoutProps, 'children'>) {
+  const pathname = usePathname();
+  return (
+    <SharedAccessAwareHomeLayout sessionKey={pathname} {...accessOptions}>
+      {children}
+    </SharedAccessAwareHomeLayout>
+  );
 }
