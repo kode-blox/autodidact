@@ -11,7 +11,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@sayakm/fumadocs-shared": "github:SayakMukhopadhyay/fumadocs-shared#1eb755f7a1825ea229a191b9da652fc7ae86080e",
+    "@sayakm/fumadocs-shared": "github:SayakMukhopadhyay/fumadocs-shared#1c9f0ff3bec88acb94e6bd65071820d0ea04dbb9",
     "cn": "^0.5.2",
     "fumadocs-core": "16.18.4",
     "fumadocs-mdx": "15.5.3",
