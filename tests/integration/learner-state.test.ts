@@ -10,10 +10,13 @@ const nextCli = fileURLToPath(import.meta.resolve('next/dist/bin/next'));
 
 test('S3 learner state survives restart and rejects conflicting updates', { timeout: 60_000 }, async () => {
   // Requires a freshly built application; all storage traffic stays on loopback.
-  const courseId = 'ue584';
+  const courseId = 'getting-started';
+  const firstLessonId = 'navigate-and-search';
+  const secondLessonId = 'track-your-progress';
   const bindHostname = 'localhost';
   const port = '4341';
   const origin = `http://localhost:${port}`;
+  const courseApi = `${origin}/api/courses/${courseId}`;
   const s3 = await startS3Server();
   const children: ChildProcess[] = [];
 
@@ -68,20 +71,20 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
     });
   }
 
-  async function lessonState(lesson = '05-01'): Promise<LessonState> {
-    const response = await fetch(`${origin}/api/courses/${courseId}/lessons/${lesson}/state`);
+  async function lessonState(lesson = firstLessonId): Promise<LessonState> {
+    const response = await fetch(`${courseApi}/lessons/${lesson}/state`);
     assert.equal(response.status, 200, await response.clone().text());
     return response.json();
   }
 
   async function courseState(): Promise<CourseState> {
-    const response = await fetch(`${origin}/api/courses/${courseId}/state`);
+    const response = await fetch(`${courseApi}/state`);
     assert.equal(response.status, 200, await response.clone().text());
     return response.json();
   }
 
-  function saveLesson(kind: 'note' | 'completion', expectedVersion: number, value: unknown, lesson = '05-01') {
-    return fetch(`${origin}/api/courses/${courseId}/lessons/${lesson}/state`, {
+  function saveLesson(kind: 'note' | 'completion', expectedVersion: number, value: unknown, lesson = firstLessonId) {
+    return fetch(`${courseApi}/lessons/${lesson}/state`, {
       method: 'PUT',
       headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind, expectedVersion, value }),
@@ -89,7 +92,7 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
   }
 
   function saveResume(expectedVersion: number, value: ResumeValue) {
-    return fetch(`${origin}/api/courses/${courseId}/resume`, {
+    return fetch(`${courseApi}/resume`, {
       method: 'PUT',
       headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ expectedVersion, value }),
@@ -105,19 +108,19 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
     );
     const health = await fetch(origin + '/api/health');
     assert.equal(health.headers.get('cache-control'), 'no-store');
-    const rejectedOrigin = await fetch(origin + '/api/courses/' + courseId + '/lessons/05-01/state', {
+    const rejectedOrigin = await fetch(`${courseApi}/lessons/${firstLessonId}/state`, {
       method: 'PUT',
       headers: { Origin: 'https://other.example', 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind: 'completion', expectedVersion: 0, value: { completed: true } }),
     });
     assert.equal(rejectedOrigin.status, 403);
-    const rejectedType = await fetch(origin + '/api/courses/' + courseId + '/lessons/05-01/state', {
+    const rejectedType = await fetch(`${courseApi}/lessons/${firstLessonId}/state`, {
       method: 'PUT',
       headers: { Origin: origin, 'Content-Type': 'text/plain' },
       body: '{}',
     });
     assert.equal(rejectedType.status, 415);
-    const invalidHeading = await saveResume(0, { lessonId: '05-01', heading: 'missing-heading' });
+    const invalidHeading = await saveResume(0, { lessonId: firstLessonId, heading: 'missing-heading' });
     assert.equal(invalidHeading.status, 400);
     assert.equal(
       s3.requests.filter((request) => request.method === 'PUT').length,
@@ -156,42 +159,46 @@ test('S3 learner state survives restart and rejects conflicting updates', { time
     const conflicting = await saveLesson('completion', 0, { completed: false });
     assert.equal(conflicting.status, 409);
     assert.deepEqual(((await conflicting.json()) as { current: unknown }).current, completion);
-    const otherLesson = await saveLesson('completion', 0, { completed: true }, '05-02');
+    const otherLesson = await saveLesson('completion', 0, { completed: true }, secondLessonId);
     assert.equal(otherLesson.status, 200);
     assert.equal(((await otherLesson.json()) as Resource<unknown>).version, 1);
     assert.deepEqual((await lessonState()).completion, completion);
     assert.deepEqual((await lessonState()).note, newest);
 
-    const resume = await saveResume(0, { lessonId: '05-02', heading: null });
+    const resume = await saveResume(0, { lessonId: secondLessonId, heading: 'resume-reading' });
     assert.equal(resume.status, 200);
     const savedResume = (await resume.json()) as Resource<ResumeValue>;
-    const staleResume = await saveResume(0, { lessonId: '05-01', heading: null });
+    const staleResume = await saveResume(0, { lessonId: firstLessonId, heading: null });
     assert.equal(staleResume.status, 409);
     assert.deepEqual(((await staleResume.json()) as { current: unknown }).current, savedResume);
     assert.deepEqual((await courseState()).resume, savedResume);
 
-    const introResume = await saveResume(savedResume.version, { lessonId: '05-01', heading: '' });
+    // The second lesson has text before its first heading, which accepts the legacy empty heading.
+    const introResume = await saveResume(savedResume.version, { lessonId: secondLessonId, heading: '' });
     assert.equal(introResume.status, 200);
-    assert.deepEqual(((await introResume.json()) as Resource<ResumeValue>).value, { lessonId: '05-01', heading: '' });
+    assert.deepEqual(((await introResume.json()) as Resource<ResumeValue>).value, {
+      lessonId: secondLessonId,
+      heading: '',
+    });
 
     const stateBeforeRestart = await lessonState();
-    const otherBeforeRestart = await lessonState('05-02');
+    const otherBeforeRestart = await lessonState(secondLessonId);
     const courseBeforeRestart = await courseState();
     await stopApp(children.at(-1)!);
     await startApp();
     assert.deepEqual(await lessonState(), stateBeforeRestart);
-    assert.deepEqual(await lessonState('05-02'), otherBeforeRestart);
+    assert.deepEqual(await lessonState(secondLessonId), otherBeforeRestart);
     assert.deepEqual(await courseState(), courseBeforeRestart);
 
     assert.equal((await fetch(`${origin}/api/courses/not-a-course/state`)).status, 404);
-    assert.equal((await fetch(`${origin}/api/courses/${courseId}/lessons/not-a-lesson/state`)).status, 404);
+    assert.equal((await fetch(`${courseApi}/lessons/not-a-lesson/state`)).status, 404);
     assert.equal(s3.errors.length, 0, 'S3 fixture saw an unexpected request.');
     assert.ok(s3.requests.some((request) => request.method === 'PUT' && request.ifNoneMatch === '*'));
     assert.ok(s3.requests.some((request) => request.method === 'PUT' && request.ifMatch));
     assert.deepEqual([...s3.objects.keys()].sort(), [
-      `courses/${courseId}/lessons/05-01/completion.json`,
-      `courses/${courseId}/lessons/05-01/note.json`,
-      `courses/${courseId}/lessons/05-02/completion.json`,
+      `courses/${courseId}/lessons/${firstLessonId}/completion.json`,
+      `courses/${courseId}/lessons/${firstLessonId}/note.json`,
+      `courses/${courseId}/lessons/${secondLessonId}/completion.json`,
       `courses/${courseId}/resume.json`,
     ]);
     console.info(

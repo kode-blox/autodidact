@@ -13,10 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: "05"
-course: ue584
-title: GPU Programming
-lessons: ["05-01", "05-02"]
+id: using-the-reader
+course: getting-started
+title: Using the reader
+lessons: [navigate-and-search, track-your-progress]
 ---
-
-Connect shader stages and resource bindings to an explicit compute dispatch.

@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: ue584
-title: Unreal Engine Development
-description: Understand the engine through source, worked examples, and practical experiments.
-baseline: "5.8.4"
-modules: ["05"]
-experiments:
-  - id: compute-dispatch
-    title: Compute dispatch
-    file: experiments/compute-dispatch.html
+id: getting-started
+title: Getting Started with AutoDidact
+description: Find lessons, keep notes, and pick up where you left off.
+modules: [using-the-reader]
 ---
 
-Study Unreal Engine internals against stock UE 5.8.4. The course contains two lessons from GPU Programming.
+Start with the first lesson in **Using the reader**.

@@ -13,10 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: '01'
-course: rust
-title: Ownership and Shared State
-lessons: ['01-01', '01-02']
+id: navigate-and-search
+course: getting-started
+title: Navigate and search
+description: Find lessons from the course overview, sidebar, or search.
 ---
 
-Trace who owns a value, who may borrow it, and what changes when several threads need access to the same state.
+## Find a lesson
+
+Open a course from your library. The overview groups lessons by module. Use the sidebar to switch lessons or select **Course contents** to return to the overview.
+
+## Search within the course
+
+Open **Search** and type `resume reading`. Select the result from **Track your progress** to jump straight to that section.

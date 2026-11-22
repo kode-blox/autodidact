@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const nextCli = fileURLToPath(import.meta.resolve('next/dist/bin/next'));
 
 test(
-  'production courses retain Markdown exports, negotiation, controls, and Open Graph images',
+  'bundled walkthrough retains navigation, search, Markdown exports, controls, and Open Graph images',
   { timeout: 60_000 },
   async () => {
     // Next.js uses localhost as its canonical loopback hostname for rewrites.
@@ -63,27 +63,52 @@ test(
         await delay(100);
       }
       assert.ok(ready, output);
+      const homeResponse = await fetch(origin);
+      assert.equal(homeResponse.status, 200);
+      const home = await homeResponse.text();
+      assert.deepEqual(
+        [...home.matchAll(/<a\b[^>]*\bhref="(\/courses\/[^"/]+)"/g)].map((match) => match[1]),
+        ['/courses/getting-started'],
+      );
+      assert.match(home, /Getting Started with AutoDidact/);
       const indexResponse = await fetch(origin + '/llms.txt');
       assert.match(indexResponse.headers.get('content-type')!, /text\/plain/);
       const index = await indexResponse.text();
-      assert.match(index, /\/courses\/ue584\/05-01/);
-      assert.ok(index.indexOf('/courses/ue584/05-01') < index.indexOf('/courses/ue584/05-02'));
+      assert.match(index, /\/courses\/getting-started\/navigate-and-search/);
+      assert.ok(
+        index.indexOf('/courses/getting-started/navigate-and-search') <
+          index.indexOf('/courses/getting-started/track-your-progress'),
+      );
       const full = await (await fetch(origin + '/llms-full.txt')).text();
-      assert.match(full, /Study Unreal Engine internals/);
-      const shaderLesson = full.indexOf('# Shader stages resources and bindings');
-      const computeLesson = full.indexOf('# Compute dispatch and thread groups');
-      assert.ok(shaderLesson >= 0 && computeLesson > shaderLesson, 'Expected lessons in authored order');
+      assert.match(full, /Getting Started with AutoDidact/);
+      const navigationLesson = full.indexOf('# Navigate and search');
+      const progressLesson = full.indexOf('# Track your progress');
+      assert.ok(navigationLesson >= 0 && progressLesson > navigationLesson, 'Expected lessons in authored order');
       assert.doesNotMatch(full, /"note":\s*\{|"resume":\s*\{/);
+      const searchResponse = await fetch(origin + '/api/courses/getting-started/search?query=resume%20reading');
+      assert.equal(searchResponse.status, 200);
+      const searchResults = (await searchResponse.json()) as { url: string }[];
+      assert.ok(
+        searchResults.some((result) => result.url === '/courses/getting-started/track-your-progress#resume-reading'),
+        'Expected a searchable lesson heading',
+      );
+      assert.ok(searchResults.every((result) => result.url.startsWith('/courses/getting-started/')));
       const favicon = await fetch(origin + '/favicon.svg');
       assert.equal(favicon.status, 200);
       assert.match(favicon.headers.get('content-type') ?? '', /image\/svg\+xml/);
       await favicon.arrayBuffer();
-      for (const suffix of ['ue584', 'ue584/05-01']) {
+      for (const suffix of ['getting-started', 'getting-started/navigate-and-search']) {
         const documentUrl = origin + '/courses/' + suffix;
         const htmlResponse = await fetch(documentUrl, { headers: { Accept: 'text/html' } });
         assert.equal(htmlResponse.status, 200);
         assert.match(htmlResponse.headers.get('content-type')!, /text\/html/);
         const html = await htmlResponse.text();
+        assert.match(html, /Using the reader/);
+        assert.ok(html.includes('href="/courses/getting-started/navigate-and-search"'));
+        assert.ok(html.includes('href="/courses/getting-started/track-your-progress"'));
+        if (suffix === 'getting-started') {
+          assert.ok(html.indexOf('>Navigate and search</a>') < html.indexOf('>Track your progress</a>'));
+        }
         assert.match(html, /Copy Markdown/);
         assert.match(html, /property="og:image"/);
         assert.ok(html.includes(`content="https://reader.example.test/og/courses/${suffix}/image.png"`));
@@ -114,12 +139,15 @@ test(
       }
       for (const route of [
         '/courses/missing',
-        '/courses/ue584/missing',
-        '/courses/ue584/05-01/extra',
-        '/courses/ue584/missing.md',
+        '/courses/ue584',
+        '/courses/rust',
+        '/experiments/ue584/compute-dispatch',
+        '/courses/getting-started/missing',
+        '/courses/getting-started/navigate-and-search/extra',
+        '/courses/getting-started/missing.md',
         '/courses/missing.md',
-        '/llms.mdx/courses/ue584/05-01/wrong.md',
-        '/og/courses/ue584/missing/image.png',
+        '/llms.mdx/courses/getting-started/navigate-and-search/wrong.md',
+        '/og/courses/getting-started/missing/image.png',
       ]) {
         assert.equal((await fetch(origin + route)).status, 404, route);
       }
