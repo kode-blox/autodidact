@@ -31,7 +31,7 @@
     "@aws-sdk/client-s3": "^3.1164.0",
     "@opentelemetry/exporter-prometheus": "0.301.2",
     "@opentelemetry/sdk-metrics": "3.1.1",
-    "@sayakm/fumadocs-shared": "github:SayakMukhopadhyay/fumadocs-shared#e69e00715ad6480ce18f565441e989403c3ba2ee",
+    "@sayakm/fumadocs-shared": "github:SayakMukhopadhyay/fumadocs-shared#1eb755f7a1825ea229a191b9da652fc7ae86080e",
     "cn": "^0.5.2",
     "fumadocs-core": "16.18.4",
     "fumadocs-mdx": "15.5.3",
