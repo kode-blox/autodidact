@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { baseOptions } from '@/lib/layout.shared';
 import { SearchProvider } from 'fumadocs-ui/contexts/search';
+import { AccessAwareHomeLayout } from '@/components/access-aware-layouts';
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
     <SearchProvider>
-      <HomeLayout {...baseOptions()}>{children}</HomeLayout>
+      <AccessAwareHomeLayout>{children}</AccessAwareHomeLayout>
     </SearchProvider>
   );
 }

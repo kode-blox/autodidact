@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import { resolveLinkItems, type BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import { LogOut } from 'lucide-react';
 import { appName, gitConfig } from '@/lib/shared';
 
-export function baseOptions(): BaseLayoutProps {
+export function baseOptions(logoutUrl?: string): BaseLayoutProps {
+  const links = resolveLinkItems({ githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}` });
+  if (logoutUrl) {
+    links.push({
+      type: 'icon',
+      label: 'Log out',
+      text: 'Log out',
+      icon: <LogOut aria-hidden="true" />,
+      url: logoutUrl,
+      // Use same-tab navigation. The auth origin is cross-origin, which Next.js never prefetches.
+      external: false,
+    });
+  }
+
   return {
     nav: {
       // JSX supported
       title: appName,
     },
-    githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
+    links,
   };
 }

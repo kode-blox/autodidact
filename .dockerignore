@@ -16,3 +16,4 @@
 !content
 !public
 !tests
+!workers/sign-in-router/src/index.js
