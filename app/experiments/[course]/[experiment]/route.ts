@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { getCourse } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 
 export async function GET(_request: Request, { params }: RouteContext<'/experiments/[course]/[experiment]'>) {
   const ids = await params;
-  const experiment = getCourse(ids.course)?.experiments.find((item) => item.id === ids.experiment);
+  const publication = await getCoursePublication();
+  const experiment = publication.getCourse(ids.course)?.experiments.find((item) => item.id === ids.experiment);
 
   return experiment
     ? new Response(experiment.html, {

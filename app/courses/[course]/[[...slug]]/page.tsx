@@ -26,10 +26,9 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { getMDXComponents } from '@/components/mdx';
-import { source } from '@/lib/source';
 import { getPageMetadata } from '@/lib/metadata';
 import { getPageGitHubUrl, getPageMarkdownUrl, lessonUrl } from '@/lib/shared';
-import { getCourse } from '@/lib/content/catalog';
+import { getRenderPublication } from '@/lib/content/publication';
 import CourseOverview from '@/components/course-overview';
 import ReaderTools, { OverviewLessonLink } from '@/components/reader-tools';
 
@@ -40,7 +39,9 @@ async function getCoursePage({ params }: PageProps<'/courses/[course]/[[...slug]
     notFound();
   }
 
-  const course = getCourse(courseId);
+  const publication = await getRenderPublication();
+  const { source } = publication;
+  const course = publication.getCourse(courseId);
   const [lessonId] = slug;
 
   if (!course || (lessonId && !course.lessons.some((lesson) => lesson.id === lessonId))) {
@@ -53,7 +54,7 @@ async function getCoursePage({ params }: PageProps<'/courses/[course]/[[...slug]
     notFound();
   }
 
-  return { course, lessonId, page };
+  return { publication, course, lessonId, page };
 }
 
 export async function generateMetadata(props: PageProps<'/courses/[course]/[[...slug]]'>): Promise<Metadata> {
@@ -62,7 +63,7 @@ export async function generateMetadata(props: PageProps<'/courses/[course]/[[...
 }
 
 export default async function Page(props: PageProps<'/courses/[course]/[[...slug]]'>) {
-  const { course, lessonId, page } = await getCoursePage(props);
+  const { publication, course, lessonId, page } = await getCoursePage(props);
   const markdownUrl = getPageMarkdownUrl(page).url;
   const Body = page.data.body;
 
@@ -98,7 +99,7 @@ export default async function Page(props: PageProps<'/courses/[course]/[[...slug
       >
         <Body
           components={getMDXComponents({
-            a: createRelativeLink(source, page),
+            a: createRelativeLink(publication.source, page),
           })}
         />
         {!lessonId && (

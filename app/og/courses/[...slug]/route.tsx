@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import { source } from '@/lib/source';
 import { notFound } from 'next/navigation';
 import { generateOGImage } from 'fumadocs-ui/og';
 import { appName } from '@/lib/shared';
-import { getCatalog } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 
 export async function GET(_request: Request, { params }: RouteContext<'/og/courses/[...slug]'>) {
-  getCatalog();
+  const publication = await getCoursePublication();
 
   const { slug } = await params;
-  const page = source.getPage(slug.slice(0, -1));
+  const page = publication.source.getPage(slug.slice(0, -1));
   if (!page || slug.at(-1) !== 'image.png') {
     notFound();
   }

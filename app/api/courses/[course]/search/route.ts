@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { source } from '@/lib/source';
+import { getCoursePublication, type CoursePublication } from '@/lib/content/library';
 import { createFromSource } from 'fumadocs-core/search/server';
-import { getCourse, type CourseCatalog } from '@/lib/content/catalog';
+import type { CourseCatalog } from '@/lib/content/catalog';
 
 const searches = new WeakMap<CourseCatalog, ReturnType<typeof createFromSource>>();
 
-function getSearch(course: CourseCatalog) {
+function getSearch(publication: CoursePublication, course: CourseCatalog) {
+  const { source } = publication;
   const cached = searches.get(course);
 
   if (cached) {
@@ -51,7 +52,8 @@ function getSearch(course: CourseCatalog) {
 
 export async function GET(request: Request, { params }: RouteContext<'/api/courses/[course]/search'>) {
   const { course: courseId } = await params;
-  const course = getCourse(courseId);
+  const publication = await getCoursePublication();
+  const course = publication.getCourse(courseId);
 
   if (!course) {
     return Response.json({ error: 'Course not found.' }, { status: 404 });
@@ -64,7 +66,7 @@ export async function GET(request: Request, { params }: RouteContext<'/api/cours
     return Response.json({ error: 'Query is too long.' }, { status: 400 });
   }
 
-  const results = query.trim() ? await getSearch(course).search(query, { limit: 20 }) : [];
+  const results = query.trim() ? await getSearch(publication, course).search(query, { limit: 20 }) : [];
 
   return Response.json(results, {
     headers: { 'Cache-Control': 'no-store' },

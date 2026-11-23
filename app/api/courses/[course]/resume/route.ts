@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { getCourse } from '@/lib/content/catalog';
-import { source } from '@/lib/source';
+import { getCoursePublication } from '@/lib/content/library';
 import { checkMutation, errorResponse, json, readJson } from '@/server/http';
 import { stateStore } from '@/server/state/store';
 import * as validate from '@/server/state/validation';
@@ -25,7 +24,8 @@ export async function PUT(request: Request, { params }: RouteContext<'/api/cours
 
   try {
     checkMutation(request);
-    const course = getCourse(courseId);
+    const publication = await getCoursePublication();
+    const course = publication.getCourse(courseId);
 
     if (!course) {
       return json({ error: 'Course not found.' }, 404);
@@ -39,7 +39,7 @@ export async function PUT(request: Request, { params }: RouteContext<'/api/cours
       return json({ error: 'Lesson not found.' }, 404);
     }
 
-    const page = source.getPage([courseId, value.lessonId]);
+    const page = publication.source.getPage([courseId, value.lessonId]);
 
     if (!page) {
       return json({ error: 'Lesson not found.' }, 404);

@@ -17,15 +17,15 @@
 import type { DefaultSearchDialogProps } from 'fumadocs-ui/components/dialog/search-default';
 import { SearchProvider } from 'fumadocs-ui/contexts/search';
 import { notFound } from 'next/navigation';
-import { getCatalog, getCourse } from '@/lib/content/catalog';
-import { getPublicationTree } from '@/lib/content/publication';
+import { getPublicationTree, getRenderPublication } from '@/lib/content/publication';
 import { AccessAwareCourseLayout } from '@/components/access-aware-layouts';
 import { ReaderNavigationProvider } from '@/components/reader-tools';
 
 export default async function Layout({ children, params }: LayoutProps<'/courses/[course]'>) {
   const { course: id } = await params;
 
-  const course = getCourse(id);
+  const publication = await getRenderPublication();
+  const course = publication.getCourse(id);
   if (!course) {
     notFound();
   }
@@ -35,7 +35,7 @@ export default async function Layout({ children, params }: LayoutProps<'/courses
       <SearchProvider<DefaultSearchDialogProps>
         options={{ api: '/api/courses/' + encodeURIComponent(course.id) + '/search', delayMs: 250 }}
       >
-        <AccessAwareCourseLayout tree={getPublicationTree(getCatalog())}>
+        <AccessAwareCourseLayout tree={getPublicationTree(publication)}>
           {children}
         </AccessAwareCourseLayout>
       </SearchProvider>

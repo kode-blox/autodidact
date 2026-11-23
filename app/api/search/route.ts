@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
-import { getCatalog } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 
-export const { GET } = createFromSource(() => {
-  getCatalog();
-  return source;
-});
+export const { GET } = createFromSource(async () => (await getCoursePublication()).source);

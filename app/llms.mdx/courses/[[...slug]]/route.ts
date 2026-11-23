@@ -15,15 +15,14 @@
  */
 
 import { docsLlms } from '@/lib/content/publication';
-import { source } from '@/lib/source';
-import { getCatalog } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 import { notFound } from 'next/navigation';
 
 export async function GET(_request: Request, { params }: RouteContext<'/llms.mdx/courses/[[...slug]]'>) {
-  getCatalog();
+  const publication = await getCoursePublication();
 
   const { slug } = await params;
-  const page = source.getPage(slug?.slice(0, -1));
+  const page = publication.source.getPage(slug?.slice(0, -1));
   if (!page || slug?.at(-1) !== 'content.md') {
     notFound();
   }

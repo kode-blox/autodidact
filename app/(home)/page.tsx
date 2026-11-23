@@ -15,12 +15,12 @@
  */
 
 import Link from 'next/link';
-import { getCatalog } from '@/lib/content/catalog';
+import { getRenderPublication } from '@/lib/content/publication';
 
 export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
-  const courses = getCatalog();
+export default async function HomePage() {
+  const { catalog: courses } = await getRenderPublication();
   return (
     <div className="m-auto w-full max-w-[900px] px-6 py-16">
       <p className="text-[0.8rem] tracking-[0.12em] text-fd-muted-foreground uppercase">Your learning library</p>

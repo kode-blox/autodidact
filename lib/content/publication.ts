@@ -15,16 +15,20 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { cache } from 'react';
 import { llms } from 'fumadocs-core/source';
 import type { Item, Node, Root } from 'fumadocs-core/page-tree';
 import { appName, lessonUrl } from '@/lib/shared';
-import { source } from '@/lib/source';
-import { getCatalog, type CourseCatalog } from '@/lib/content/catalog';
+import { getCoursePublication, type CoursePublication } from '@/lib/content/library';
 
-const publicationTrees = new WeakMap<CourseCatalog[], Root>();
+// Layout, metadata, and page rendering share one accepted revision per render.
+export const getRenderPublication = cache(getCoursePublication);
 
-export function getPublicationTree(courses: CourseCatalog[]): Root {
-  const cached = publicationTrees.get(courses);
+const publicationTrees = new WeakMap<CoursePublication, Root>();
+
+export function getPublicationTree(publication: CoursePublication): Root {
+  const { source, catalog: courses } = publication;
+  const cached = publicationTrees.get(publication);
   if (cached) return cached;
 
   const pages = new Map<string, Item>();
@@ -72,27 +76,31 @@ export function getPublicationTree(courses: CourseCatalog[]): Root {
       };
     }),
   };
-  publicationTrees.set(courses, tree);
+  publicationTrees.set(publication, tree);
   return tree;
 }
 
-export const docsLlms = llms(
-  () => {
-    const courses = getCatalog();
-
-    return {
-      ...source,
-      getPages: () =>
-        courses.flatMap((course) => [
-          source.getPage([course.id])!,
-          ...course.lessons.map((lesson) => source.getPage([course.id, lesson.id])!),
-        ]),
-      getPageTree: () => getPublicationTree(courses),
-    };
-  },
-  {
-    renderPage: async (page) => {
-      return `# ${page.data.title} (${page.url})\n\n${await page.data.getText('processed')}`;
+export function createDocsLlms(getPublication: () => CoursePublication | Promise<CoursePublication>) {
+  return llms(
+    async () => {
+      const publication = await getPublication();
+      const { source, catalog: courses } = publication;
+      return {
+        ...source,
+        getPages: () =>
+          courses.flatMap((course) => [
+            source.getPage([course.id])!,
+            ...course.lessons.map((lesson) => source.getPage([course.id, lesson.id])!),
+          ]),
+        getPageTree: () => getPublicationTree(publication),
+      };
     },
-  },
-);
+    {
+      renderPage: async (page) => {
+        return `# ${page.data.title} (${page.url})\n\n${await page.data.getText('processed')}`;
+      },
+    },
+  );
+}
+
+export const docsLlms = createDocsLlms(getCoursePublication);

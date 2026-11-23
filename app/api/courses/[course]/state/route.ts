@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getCourse } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 import { errorResponse, HttpError, json } from '@/server/http';
 import { stateStore } from '@/server/state/store';
 
@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: RouteContext<'/api/cour
   const { course: courseId } = await params;
 
   try {
-    const course = getCourse(courseId);
+    const course = (await getCoursePublication()).getCourse(courseId);
     if (!course) {
       throw new HttpError(404, 'Course not found.');
     }

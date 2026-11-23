@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { getCourse } from '@/lib/content/catalog';
+import { getCoursePublication } from '@/lib/content/library';
 import { checkMutation, errorResponse, HttpError, json, readJson } from '@/server/http';
 import { stateStore } from '@/server/state/store';
 import * as validate from '@/server/state/validation';
 
-function requireLesson(courseId: string, lessonId: string) {
-  const course = getCourse(courseId);
+async function requireLesson(courseId: string, lessonId: string) {
+  const course = (await getCoursePublication()).getCourse(courseId);
 
   if (!course) {
     throw new HttpError(404, 'Course not found.');
@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: RouteContext<'/api/cour
   const { course: courseId, lesson: lessonId } = await params;
 
   try {
-    requireLesson(courseId, lessonId);
+    await requireLesson(courseId, lessonId);
     const [completion, note, resume] = await Promise.all([
       stateStore.read(courseId, lessonId, 'completion', { completed: false }),
       stateStore.read(courseId, lessonId, 'note', { text: '' }),
@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: RouteContext<'/api/cours
 
   try {
     checkMutation(request);
-    requireLesson(courseId, lessonId);
+    await requireLesson(courseId, lessonId);
     const body = validate.object(await readJson(request));
     const expected = validate.version(body.expectedVersion);
 
