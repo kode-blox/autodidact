@@ -28,6 +28,7 @@ export async function GET(_request: Request, { params }: RouteContext<'/experime
           'Content-Security-Policy':
             "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'self'",
           'X-Content-Type-Options': 'nosniff',
+          ...(publication.externalEnabled ? { 'Cache-Control': 'no-store' } : {}),
         },
       })
     : new Response('Experiment not found', { status: 404 });

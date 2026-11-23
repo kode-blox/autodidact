@@ -28,13 +28,22 @@ const { rewrite: rewriteSuffix } = rewritePath(
 );
 
 export default function proxy(request: NextRequest) {
-  const result = rewriteSuffix(request.nextUrl.pathname);
+  const pathname = request.nextUrl.pathname;
+  if (process.env.AUTODIDACT_EXTERNAL_COURSES_DIR && pathname.startsWith('/course-assets/')) {
+    try {
+      decodeURIComponent(pathname);
+    } catch {
+      return new NextResponse(null, { status: 400 });
+    }
+  }
+
+  const result = rewriteSuffix(pathname);
   if (result) {
     return NextResponse.rewrite(new URL(result, request.nextUrl));
   }
 
   if (isMarkdownPreferred(request)) {
-    const result = rewriteDocs(request.nextUrl.pathname);
+    const result = rewriteDocs(pathname);
 
     if (result) {
       return NextResponse.rewrite(new URL(result, request.nextUrl), {

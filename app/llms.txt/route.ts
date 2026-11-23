@@ -15,7 +15,10 @@
  */
 
 import { docsLlms } from '@/lib/content/publication';
+import { isCourseReloadEnabled } from '@/lib/content/library';
 
 export async function GET() {
-  return new Response(await docsLlms.index());
+  return new Response(await docsLlms.index(), {
+    headers: isCourseReloadEnabled() ? { 'Cache-Control': 'no-store' } : undefined,
+  });
 }

@@ -20,7 +20,7 @@ import { getRenderPublication } from '@/lib/content/publication';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const { catalog: courses } = await getRenderPublication();
+  const { catalog: courses, externalEnabled } = await getRenderPublication();
   return (
     <div className="m-auto w-full max-w-[900px] px-6 py-16">
       <p className="text-[0.8rem] tracking-[0.12em] text-fd-muted-foreground uppercase">Your learning library</p>
@@ -31,7 +31,9 @@ export default async function HomePage() {
       <div>
         {courses.length === 0 && (
           <p className="mt-8 text-fd-muted-foreground">
-            Your library is empty. Add courses to the configured library folder and restart AutoDidact.
+            {externalEnabled
+              ? 'No courses are available. Check the configured course checkout.'
+              : 'Your library is empty. Add courses to the configured library folder and restart AutoDidact.'}
           </p>
         )}
         {courses.map((course) => (

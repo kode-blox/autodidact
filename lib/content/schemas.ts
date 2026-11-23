@@ -62,7 +62,11 @@ export const lessonSchema = z.object({
 });
 
 export function publicAssetUrls(root = path.join(process.cwd(), 'public')): string[] {
-  const result: string[] = [];
+  return [...publicAssetFiles(root).keys()];
+}
+
+export function publicAssetFiles(root: string, scope?: 'course-assets'): Map<string, string> {
+  const result = new Map<string, string>();
 
   function collect(directory: string) {
     const stats = lstatSync(directory, { throwIfNoEntry: false });
@@ -92,12 +96,16 @@ export function publicAssetUrls(root = path.join(process.cwd(), 'public')): stri
       if (entry.isDirectory()) {
         collect(full);
       } else if (entry.isFile()) {
-        result.push('/' + path.relative(root, full).split(path.sep).map(encodeURIComponent).join('/'));
+        const url = '/' + path.relative(root, full).split(path.sep).map(encodeURIComponent).join('/');
+        result.set(url, full);
       }
     }
   }
 
-  collect(root);
+  if (scope && lstatSync(root, { throwIfNoEntry: false })?.isSymbolicLink()) {
+    throw new Error(`Public asset symlinks are unsupported: ${root}`);
+  }
+  collect(scope ? path.join(root, scope) : root);
   return result;
 }
 

@@ -18,21 +18,17 @@ import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 import { docsRoute } from '@/lib/shared';
 import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
-import { loadCourseCollections } from '@/lib/content/runtime';
-
-const collections = await loadCourseCollections();
-
-export const courseDocuments = collections.courseDocuments;
-export const moduleDocuments = collections.moduleDocuments;
-export const lessonDocuments = collections.lessonDocuments;
+import type { CourseCollections } from '@/lib/content/runtime';
 
 /** Published URLs use permanent authored IDs, never source paths or titles. */
-export const source = loader({
-  baseUrl: docsRoute,
-  source: {
-    courses: toFumadocsSource([...courseDocuments.entries], []),
-    lessons: toFumadocsSource([...lessonDocuments.entries], []),
-  },
-  plugins: [lucideIconsPlugin()],
-  slugs: (file) => (file.type === 'courses' ? [file.data.id] : [file.data.course, file.data.id]),
-});
+export function createCourseSource({ courseDocuments, lessonDocuments }: CourseCollections) {
+  return loader({
+    baseUrl: docsRoute,
+    source: {
+      courses: toFumadocsSource(courseDocuments.entries, []),
+      lessons: toFumadocsSource(lessonDocuments.entries, []),
+    },
+    plugins: [lucideIconsPlugin()],
+    slugs: (file) => (file.type === 'courses' ? [file.data.id] : [file.data.course, file.data.id]),
+  });
+}

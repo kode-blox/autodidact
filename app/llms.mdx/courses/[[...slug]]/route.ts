@@ -30,6 +30,7 @@ export async function GET(_request: Request, { params }: RouteContext<'/llms.mdx
   return new Response(await docsLlms.page(page), {
     headers: {
       'Content-Type': 'text/markdown',
+      ...(publication.externalEnabled ? { 'Cache-Control': 'no-store' } : {}),
     },
   });
 }

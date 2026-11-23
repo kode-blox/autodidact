@@ -32,5 +32,6 @@ export async function GET(_request: Request, { params }: RouteContext<'/og/cours
     title: page.data.title,
     description: page.data.description,
     site: appName,
+    headers: publication.externalEnabled ? { 'Cache-Control': 'no-store' } : undefined,
   });
 }

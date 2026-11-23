@@ -3,7 +3,7 @@ title: Self-hosting AutoDidact
 description: Configure storage, authentication, deployment, and backups for an AutoDidact instance.
 ---
 
-AutoDidact compiles its course Markdown at startup. The image ships the courses in `content/courses`, and you can replace them and supply assets through optional read-only mounts. A private S3-compatible bucket stores completion, reading positions, and notes as JSON documents.
+AutoDidact compiles its bundled course Markdown at startup. You can replace the bundled library through read-only mounts or from a git-sync checkout that updates while the reader runs. A private S3-compatible bucket stores completion, reading positions, and notes as JSON documents.
 
 ## Requirements and secrets
 
@@ -61,13 +61,29 @@ To upgrade the reader, back up your course files, assets, and learner state, the
 
 If an older build stored learner state under an extra S3 key prefix, stop that instance and copy its state into the deployment’s dedicated bucket before starting the new version. Drop the old prefix from each key, so `autodidact/courses/…` becomes `courses/…`.
 
+### Live updates from git-sync
+
+Mount the git-sync volume read-only in AutoDidact and configure git-sync to switch the `current` checkout link atomically. Set the following environment variable on the AutoDidact container.
+
+```sh
+AUTODIDACT_EXTERNAL_COURSES_DIR=/var/lib/autodidact/course-sync/current/courses
+```
+
+Put course folders under `courses/` in the checkout, with each course's experiments alongside its `course.md`. Put assets under the same checkout’s `public/course-assets/` and link to them as `/course-assets/…`. Only assets referenced by published external course or lesson pages are served. Common raster images display inline. Other files are served as downloads. Protect these URLs with the same gateway that protects the courses.
+
+The reader checks for a checkout immediately and again five seconds after each attempt. It serves bundled courses, including Getting Started, until it accepts its first external checkout. Each accepted checkout replaces the entire active course library. A valid empty `courses/` directory publishes an empty library. Use asset URLs that are distinct from the app's public files.
+
+After the first external checkout is accepted, a missing or invalid checkout clears the active course library and its downloads. The reader checks for a valid checkout again on the next poll. Refresh open reader pages to see the update.
+
+Keep course and lesson IDs stable across revisions to retain their links to existing notes and progress. The reload itself performs no learner-state writes. Leave the variable unset for startup-only loading. Git access belongs to git-sync, so the reader needs only the shared volume.
+
 ## Kubernetes
 
 The OCI Helm chart at `oci://ghcr.io/kode-blox/charts/autodidact` runs one replica with `Recreate` and a private `ClusterIP` Service. Set application and S3 configuration under `environmentsVars`. Create a Secret in the release namespace containing `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, then reference it with `secret.existingSecret`. For an existing External Secrets installation, configure `externalSecrets` to supply the same keys. Set `imagePullSecrets` when the registry requires authentication.
 
 The chart creates a separate internal metrics Service. Set `containerPorts.metrics` to change the listener port. Set `serviceMonitor.enabled=true` to configure scraping when the Prometheus Operator's ServiceMonitor CRD is installed.
 
-The chart serves the courses and assets bundled in the image.
+By default, the chart serves the courses and assets bundled in the image.
 
 For a private operator deployment, set `AUTODIDACT_PUBLIC_URL` to the loopback address you use with `kubectl port-forward`. Enable the optional Gateway only behind an authentication boundary that protects the entire origin.
 

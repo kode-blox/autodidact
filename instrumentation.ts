@@ -16,8 +16,8 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { loadCourseCollections } = await import('@/lib/content/runtime');
-    await loadCourseCollections();
+    const { getCoursePublication } = await import('@/lib/content/library');
+    await getCoursePublication();
 
     const { startMetrics } = await import('@/server/metrics');
     await startMetrics();

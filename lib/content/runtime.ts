@@ -19,6 +19,7 @@ import path from 'node:path';
 import { frontmatter } from 'fumadocs-core/content/md/frontmatter';
 import { defineCollections } from 'fumadocs-mdx/config';
 import { dynamic, type LazyEntry } from 'fumadocs-mdx/runtime/dynamic';
+import type { AsyncDocCollectionEntry } from 'fumadocs-mdx/runtime/server';
 import { markdownOptions } from '@/lib/content/markdown';
 import {
   courseCollectionSchema,
@@ -27,18 +28,7 @@ import {
   publicAssetUrls,
 } from '@/lib/content/schemas';
 
-const collectionsKey = Symbol.for('autodidact.courseCollections');
-
-export function loadCourseCollections() {
-  // The Next.js instrumentation and route bundles share one startup snapshot.
-  const runtime = globalThis as typeof globalThis & {
-    [collectionsKey]?: ReturnType<typeof createRuntimeCollections>;
-  };
-
-  return (runtime[collectionsKey] ??= createRuntimeCollections(process.cwd()));
-}
-
-/** Compile the course files visible when the server starts. */
+/** Compile the bundled or replacement course directory. */
 export async function createRuntimeCollections(root: string) {
   const appRoot = path.resolve(root);
   const directory = path.join(appRoot, 'content', 'courses');
@@ -50,6 +40,13 @@ export async function createRuntimeCollections(root: string) {
   }
 
   const publicUrls = publicAssetUrls(path.join(appRoot, 'public'));
+  return { ...(await compileCourseCollections(directory, publicUrls)), publicUrls };
+}
+
+export type CourseCollections = Awaited<ReturnType<typeof compileCourseCollections>>;
+
+/** The caller resolves any checkout link before passing the source directory. */
+export async function compileCourseCollections(directory: string, publicUrls: string[]) {
   const moduleParser = moduleCollectionSchema(publicUrls);
   const lessonParser = lessonCollectionSchema(publicUrls);
   const courses: LazyEntry[] = [];
@@ -123,22 +120,18 @@ export async function createRuntimeCollections(root: string) {
     { environment: 'next' },
   );
 
-  // Preserve the compiled collection shapes used by navigation, validation and search.
-  const [courseEntries, moduleEntries, lessonEntries] = await Promise.all([
-    compiler
-      .doc('courses', directory, courses)
-      .then((entries) => Promise.all(entries.map(async (entry) => ({ ...entry, ...(await entry.load()) })))),
-    compiler
-      .doc('modules', directory, modules)
-      .then((entries) => Promise.all(entries.map(async (entry) => ({ ...entry, ...(await entry.load()) })))),
-    compiler
-      .doc('lessons', directory, lessons)
-      .then((entries) => Promise.all(entries.map(async (entry) => ({ ...entry, ...(await entry.load()) })))),
-  ]);
+  async function compile<Entry extends Pick<AsyncDocCollectionEntry, 'load'>>(entries: Entry[]) {
+    // Finish outstanding compilation before a failed reload can start another attempt.
+    const results = await Promise.allSettled(entries.map(async (entry) => ({ ...entry, ...(await entry.load()) })));
+    return results.map((result) => {
+      if (result.status === 'rejected') throw result.reason;
+      return result.value;
+    });
+  }
 
   return {
-    courseDocuments: { entries: courseEntries },
-    moduleDocuments: { entries: moduleEntries },
-    lessonDocuments: { entries: lessonEntries },
+    courseDocuments: { entries: await compile(await compiler.doc('courses', directory, courses)) },
+    moduleDocuments: { entries: await compile(await compiler.doc('modules', directory, modules)) },
+    lessonDocuments: { entries: await compile(await compiler.doc('lessons', directory, lessons)) },
   };
 }

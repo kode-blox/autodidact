@@ -75,7 +75,9 @@ export default async function Page(props: PageProps<'/courses/[course]/[[...slug
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
-          githubUrl={process.env.NODE_ENV === 'development' ? getPageGitHubUrl(page) : undefined}
+          githubUrl={
+            process.env.NODE_ENV === 'development' && !publication.isExternal ? getPageGitHubUrl(page) : undefined
+          }
         />
       </div>
       {lessonId ? (

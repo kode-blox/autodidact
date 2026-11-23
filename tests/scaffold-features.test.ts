@@ -54,6 +54,19 @@ test('public image/Markdown URLs use IDs while GitHub links follow authored path
   );
 });
 
+test('the external asset route rejects malformed URL escapes before matching filenames', (context) => {
+  const original = process.env.AUTODIDACT_EXTERNAL_COURSES_DIR;
+  context.after(() => {
+    if (original === undefined) delete process.env.AUTODIDACT_EXTERNAL_COURSES_DIR;
+    else process.env.AUTODIDACT_EXTERNAL_COURSES_DIR = original;
+  });
+  process.env.AUTODIDACT_EXTERNAL_COURSES_DIR = '/fixtures/current/courses';
+
+  assert.equal(proxy(new NextRequest('http://localhost/course-assets/notes%zz.txt')).status, 400);
+  const valid = proxy(new NextRequest('http://localhost/course-assets/notes%20100%25.txt'));
+  assert.equal(valid.headers.get('x-middleware-next'), '1');
+});
+
 test('native relative links and authored icons survive permanent-ID slugs', () => {
   const data = lessonSchema.parse({
     id: 'permanent-id',

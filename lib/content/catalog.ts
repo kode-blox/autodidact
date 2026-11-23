@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { courseDocuments, moduleDocuments, lessonDocuments } from '@/lib/source';
+import type { CourseCollections } from '@/lib/content/runtime';
 import { validateCompiledDocuments, type CompiledDocument } from '@/lib/content/validation';
 
 export interface Experiment {
@@ -46,8 +46,8 @@ export interface CourseCatalog {
   experiments: Experiment[];
 }
 
-function buildCatalog(): CourseCatalog[] {
-  const documents: CompiledDocument[] = [
+export function getCompiledDocuments({ courseDocuments, moduleDocuments, lessonDocuments }: CourseCollections) {
+  return [
     ...courseDocuments.entries.map((entry) => ({
       kind: 'courses' as const,
       entry,
@@ -66,7 +66,10 @@ function buildCatalog(): CourseCatalog[] {
     data: entry,
     structuredData: entry.structuredData,
     links: Array.isArray(entry._exports.authoredLinks) ? (entry._exports.authoredLinks as string[]) : [],
-  }));
+  })) satisfies CompiledDocument[];
+}
+
+export function createCourseCatalog(documents: CompiledDocument[]): CourseCatalog[] {
   validateCompiledDocuments(documents);
   return documents
     .filter((doc) => doc.kind === 'courses')
@@ -106,15 +109,4 @@ function buildCatalog(): CourseCatalog[] {
         })),
       };
     });
-}
-
-// A development module replacement rebuilds this complete validated catalog.
-let catalog: CourseCatalog[] | undefined;
-
-export function getCatalog(): CourseCatalog[] {
-  return (catalog ??= buildCatalog());
-}
-
-export function getCourse(courseId: string) {
-  return getCatalog().find((course) => course.id === courseId);
 }

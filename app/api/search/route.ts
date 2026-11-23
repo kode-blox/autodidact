@@ -15,6 +15,14 @@
  */
 
 import { createFromSource } from 'fumadocs-core/search/server';
-import { getCoursePublication } from '@/lib/content/library';
+import { getCoursePublication, isCourseReloadEnabled } from '@/lib/content/library';
 
-export const { GET } = createFromSource(async () => (await getCoursePublication()).source);
+const search = createFromSource(async () => (await getCoursePublication()).source);
+
+export async function GET(request: Request) {
+  const response = await search.GET(request);
+  if (isCourseReloadEnabled()) {
+    response.headers.set('Cache-Control', 'no-store');
+  }
+  return response;
+}
