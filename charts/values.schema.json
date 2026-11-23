@@ -281,6 +281,17 @@
       "type": "array",
       "items": {"type": "object"}
     },
+    "extraContainers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "image"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "image": {"type": "string", "minLength": 1}
+        }
+      }
+    },
     "nodeSelector": {"$ref": "#/definitions/stringMap"},
     "tolerations": {
       "type": "array",

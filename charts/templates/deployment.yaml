@@ -85,6 +85,9 @@ spec:
               value: {{ .Values.containerPorts.http | quote }}
             - name: AUTODIDACT_METRICS_PORT
               value: {{ .Values.containerPorts.metrics | quote }}
+        {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

@@ -130,6 +130,10 @@ volumes:
 volumeMounts:
   - name: next-cache
     mountPath: /home/node/app/.next/cache
+
+# Optional additional containers, such as a course-sync sidecar.
+extraContainers: []
+
 nodeSelector: {}
 tolerations: []
 affinity: {}

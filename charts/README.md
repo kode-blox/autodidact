@@ -35,6 +35,18 @@ Configure it through `podAnnotations` when one is installed in the cluster.
 
 The chart serves the courses and assets bundled in the image.
 
+Use `extraContainers` to append container specifications to the Deployment, for
+example a git-sync sidecar. Configure shared storage through `volumes` and the
+reader's `volumeMounts`. Each additional container supplies its own mounts,
+environment, resources, and security context. Helm replaces list values, so keep
+the existing Next.js cache volume and mount when overriding those lists.
+
+For live course updates, mount git-sync's shared volume read-only in the reader
+and set `environmentsVars.AUTODIDACT_EXTERNAL_COURSES_DIR` to its checkout's
+`courses` directory, such as `/var/lib/autodidact/course-sync/current/courses`.
+The [self-hosting guide](https://autodidact.kodeblox.com/self-hosting) describes
+the checkout layout and reload behavior.
+
 ## Install
 
 Set `environmentsVars.AUTODIDACT_PUBLIC_URL` to the exact browser-facing origin. Use the
