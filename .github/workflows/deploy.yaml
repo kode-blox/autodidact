@@ -17,7 +17,7 @@ on:
         type: string
         default: ""
       image-tag:
-        description: Optional AutoDidact container image tag
+        description: Optional AutoDidact image tag
         required: false
         type: string
         default: ""
