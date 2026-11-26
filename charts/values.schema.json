@@ -211,6 +211,7 @@
         "className": {"type": "string"},
         "annotations": {"$ref": "#/definitions/stringMap"},
         "listenerName": {"type": "string"},
+        "protocol": {"type": "string", "enum": ["HTTP", "HTTPS"]},
         "port": {"type": "integer", "minimum": 1, "maximum": 65535},
         "hosts": {
           "type": "array",
@@ -219,7 +220,8 @@
             "additionalProperties": false,
             "required": ["host"],
             "properties": {
-              "host": {"type": "string", "minLength": 1}
+              "host": {"type": "string", "minLength": 1},
+              "tlsSecretName": {"type": "string", "minLength": 1}
             }
           }
         },
@@ -231,6 +233,10 @@
             "required": ["path"],
             "properties": {
               "path": {"type": "string", "pattern": "^/"},
+              "pathType": {"type": "string", "enum": ["PathPrefix", "Exact"]},
+              "methods": {"type": "array", "items": {"type": "string", "minLength": 1}},
+              "headers": {"type": "array", "items": {"type": "object"}},
+              "filters": {"type": "array", "items": {"type": "object"}},
               "middlewares": {
                 "type": "array",
                 "items": {"type": "string", "minLength": 1, "maxLength": 253}
@@ -240,6 +246,8 @@
                 "additionalProperties": false,
                 "properties": {
                   "name": {"type": "string", "maxLength": 253},
+                  "group": {"type": "string"},
+                  "kind": {"type": "string"},
                   "namespace": {
                     "type": "string",
                     "maxLength": 63,

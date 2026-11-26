@@ -85,9 +85,11 @@ gateway:
   className: traefik
   annotations: {}
   listenerName: cloudflare
+  protocol: HTTP
   port: 8001
   hosts:
     - host: learn.example.com
+  # Rules can set pathType, methods, headers, and ordered filters before middleware shortcuts.
   rules:
     - path: /
       middlewares: []

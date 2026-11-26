@@ -84,14 +84,17 @@ namespace:
 For a direct Helm install into a new namespace, pass `--create-namespace` so
 Helm can create its release namespace before applying the chart templates.
 
-The optional Gateway uses the `cloudflare` HTTP listener on port `8001`,
-with HTTPS handled upstream. Protect the entire origin with authentication or
-a private network before enabling the Gateway. Configure middleware names on
-each route; they render as Traefik Middleware references in the listed order.
-The middleware list may be omitted. A rule defaults to the chart's application
-Service unless `backend.name`, `backend.namespace`, or `backend.port` overrides
-the corresponding value. A backend in another namespace requires a
-`ReferenceGrant` in that namespace.
+The optional Gateway defaults to the `cloudflare` HTTP listener on port `8001`.
+For direct TLS, set `gateway.protocol: HTTPS` and the HTTPS entry point's port,
+then set `tlsSecretName` for each host. Protect the entire origin with
+authentication or a private network before enabling the Gateway.
+
+Rules use `path` with optional `pathType` (`PathPrefix` by default), `methods`,
+and `headers`. Explicit `filters` run in the order listed, followed by any
+Traefik `middlewares` shortcuts. Rules use the chart's application Service
+and port by default. Set `backend` to override those fields or to reference
+another kind. A backend in another namespace requires a `ReferenceGrant`
+in that namespace.
 
 ```yaml
 gateway:

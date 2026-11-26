@@ -9,21 +9,38 @@ metadata:
 spec:
   parentRefs:
     - name: {{ include "autodidact.fullname" . }}
+      {{- if ne .Values.gateway.protocol "HTTPS" }}
       sectionName: {{ required "gateway.listenerName is required when gateway.enabled=true" .Values.gateway.listenerName | quote }}
+      {{- end }}
   hostnames:
     {{- range .Values.gateway.hosts }}
     - {{ .host | quote }}
     {{- end }}
   rules:
     {{- range .Values.gateway.rules }}
-    {{- $backend := .backend | default dict }}
+    {{- $path := required "gateway.rules[].path is required when gateway.enabled=true" .path }}
+    {{- $pathType := default "PathPrefix" .pathType }}
+    {{- $headers := .headers }}
+    {{- $backend := default dict .backend }}
     - matches:
+        {{- range $method := default (list "") .methods }}
         - path:
-            type: PathPrefix
-            value: {{ required "gateway.rules[].path is required when gateway.enabled=true" .path | quote }}
-      {{- with .middlewares }}
+            type: {{ $pathType }}
+            value: {{ $path | quote }}
+          {{- if $method }}
+          method: {{ $method | quote }}
+          {{- end }}
+          {{- with $headers }}
+          headers:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- if or .filters .middlewares }}
       filters:
-        {{- range . }}
+        {{- with .filters }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- range .middlewares }}
         - type: ExtensionRef
           extensionRef:
             group: traefik.io
@@ -33,9 +50,17 @@ spec:
       {{- end }}
       backendRefs:
         - name: {{ default (include "autodidact.fullname" $) $backend.name | quote }}
+          {{- with $backend.group }}
+          group: {{ . | quote }}
+          {{- end }}
+          {{- with $backend.kind }}
+          kind: {{ . | quote }}
+          {{- end }}
           {{- with $backend.namespace }}
           namespace: {{ . | quote }}
           {{- end }}
+          {{- if or $backend.port (eq (default "Service" $backend.kind) "Service") }}
           port: {{ default $.Values.publicService.port $backend.port }}
+          {{- end }}
     {{- end }}
 {{- end }}

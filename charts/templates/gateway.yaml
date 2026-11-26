@@ -13,10 +13,26 @@ metadata:
 spec:
   gatewayClassName: {{ required "gateway.className is required when gateway.enabled=true" .Values.gateway.className | quote }}
   listeners:
+    {{- if eq .Values.gateway.protocol "HTTPS" }}
+    {{- range $index, $host := .Values.gateway.hosts }}
+    - name: {{ printf "%s-%d" $.Values.gateway.listenerName $index | quote }}
+      hostname: {{ $host.host | quote }}
+      protocol: HTTPS
+      port: {{ $.Values.gateway.port }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{ $host.tlsSecretName | quote }}
+    {{- end }}
+    {{- else }}
     - name: {{ required "gateway.listenerName is required when gateway.enabled=true" .Values.gateway.listenerName | quote }}
       protocol: HTTP
       port: {{ .Values.gateway.port }}
       allowedRoutes:
         namespaces:
           from: Same
+    {{- end }}
 {{- end }}
